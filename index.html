@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>My Triathlon</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Saira:ital,wght@1,800&family=Space+Grotesk:wght@600;700&family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="theme-color" content="#120f1d">
@@ -32,7 +32,7 @@ button,input,select,textarea{font-family:var(--fb);color:var(--text)}
 /* top bar */
 .topbar{position:relative;z-index:50;background:var(--bg);padding:14px 16px 0;border-bottom:1px solid var(--border)}
 .topbar-row1{display:flex;align-items:center;gap:10px;margin-bottom:12px}
-.logo{font-family:var(--fh);font-size:26px;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-0.5px}
+.logo{font-family:'Saira',var(--fh);font-style:italic;font-size:28px;font-weight:800;padding-right:4px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-0.5px}
 .logo-icon{font-size:22px}
 .logo-sub{margin-left:auto;font-size:11px;color:var(--muted);text-align:right}
 .topbar-btns{display:flex;gap:6px;padding-bottom:12px}
@@ -255,7 +255,7 @@ button,input,select,textarea{font-family:var(--fb);color:var(--text)}
 <script>
 (function(){
 'use strict';
-var APP_VERSION='1.1'; // bump this (and CACHE in sw.js) with every update
+var APP_VERSION='1.2'; // bump this (and CACHE in sw.js) with every update
 var KEY='triexp_v1';
 
 var SPORTS=[

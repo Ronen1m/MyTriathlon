@@ -3,23 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Tri Expenses</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<title>My Triathlon</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<meta name="theme-color" content="#0f1923">
+<meta name="theme-color" content="#120f1d">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Tri Expenses">
+<meta name="apple-mobile-web-app-title" content="My Triathlon">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 :root{
-  --bg:#0f1923;--surf:#1a2535;--surf2:#243044;
-  --accent:#f0a500;--accent2:#e05c2a;
-  --text:#eef2f7;--muted:#7a8fa6;--soft:#a9b6c6;--border:rgba(255,255,255,0.08);
+  --bg:#120f1d;--surf:#1d1830;--surf2:#2a2342;
+  --accent:#d946ef;--accent2:#7c3aed;--acc-ink:#f0abfc;
+  --text:#f3f0fa;--muted:#8e86a8;--soft:#b9b2cc;--border:rgba(255,255,255,0.08);
   --green:#2dd4a0;--red:#f05252;--r:14px;
-  --fh:'Syne',sans-serif;--fb:'DM Sans',sans-serif;
+  --fh:'Space Grotesk',sans-serif;--fb:'Manrope',sans-serif;
   /* sport colors - validated together on the dark surface (CVD-safe); always shown with icon + label */
   --swim:#3987e5;--bike:#d95926;--run:#199e70;--general:#9aa3b0;
   --seq:#3987e5;
@@ -32,7 +32,7 @@ button,input,select,textarea{font-family:var(--fb);color:var(--text)}
 /* top bar */
 .topbar{position:relative;z-index:50;background:var(--bg);padding:14px 16px 0;border-bottom:1px solid var(--border)}
 .topbar-row1{display:flex;align-items:center;gap:10px;margin-bottom:12px}
-.logo{font-family:var(--fh);font-size:26px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-0.5px}
+.logo{font-family:var(--fh);font-size:26px;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-0.5px}
 .logo-icon{font-size:22px}
 .logo-sub{margin-left:auto;font-size:11px;color:var(--muted);text-align:right}
 .topbar-btns{display:flex;gap:6px;padding-bottom:12px}
@@ -48,7 +48,7 @@ button,input,select,textarea{font-family:var(--fb);color:var(--text)}
 .chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:1px}
 .chips::-webkit-scrollbar{display:none}
 .chip{flex-shrink:0;background:var(--surf);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:5px}
-.chip.on{background:rgba(240,165,0,0.15);border-color:rgba(240,165,0,0.55);color:#ffd27a}
+.chip.on{background:rgba(217,70,239,0.15);border-color:rgba(217,70,239,0.55);color:var(--acc-ink)}
 .chip .dot{width:8px;height:8px;border-radius:50%}
 .flabel{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);align-self:center;flex-shrink:0;width:38px}
 .frow{display:flex;gap:6px;align-items:center}
@@ -82,7 +82,7 @@ button,input,select,textarea{font-family:var(--fb);color:var(--text)}
 .ramt{text-align:right;flex-shrink:0}
 .ramt .big{font-family:var(--fh);font-weight:700;font-size:15px;font-variant-numeric:tabular-nums}
 .ramt .small{font-size:10px;color:var(--muted);margin-top:2px}
-.badge{display:inline-block;padding:1px 7px;border-radius:10px;background:rgba(240,165,0,0.14);color:#ffd27a;font-size:10px;font-weight:700;margin-right:4px}
+.badge{display:inline-block;padding:1px 7px;border-radius:10px;background:rgba(217,70,239,0.14);color:var(--acc-ink);font-size:10px;font-weight:700;margin-right:4px}
 .badge.ended{background:rgba(255,255,255,0.07);color:var(--muted)}
 
 .empty{text-align:center;padding:50px 20px;color:var(--muted)}
@@ -101,7 +101,7 @@ button,input,select,textarea{font-family:var(--fb);color:var(--text)}
 .kpi .k{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 .kpi .v{font-family:var(--fh);font-weight:800;font-size:23px;margin-top:6px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .kpi .s{font-size:11px;color:var(--soft);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.kpi.hero{grid-column:1/-1;background:linear-gradient(135deg,rgba(240,165,0,0.14),rgba(224,92,42,0.08) 60%,var(--surf));border-color:rgba(240,165,0,0.3)}
+.kpi.hero{grid-column:1/-1;background:linear-gradient(135deg,rgba(217,70,239,0.14),rgba(124,58,237,0.10) 60%,var(--surf));border-color:rgba(217,70,239,0.3)}
 .kpi.hero .v{font-size:34px}
 .card{background:var(--surf);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:14px}
 .card-h{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
@@ -129,7 +129,7 @@ button,input,select,textarea{font-family:var(--fb);color:var(--text)}
 .tbl th:first-child,.tbl td:first-child{text-align:left}
 .tbl th{color:var(--muted);font-weight:500;font-size:11px}
 .tbl tr.tot td{font-weight:700;color:var(--text);border-bottom:0}
-.tip{position:absolute;pointer-events:none;background:#0b131c;border:1px solid rgba(255,255,255,0.14);border-radius:10px;padding:8px 10px;font-size:12px;min-width:150px;z-index:5;box-shadow:0 8px 24px rgba(0,0,0,.4);display:none}
+.tip{position:absolute;pointer-events:none;background:#0c0a14;border:1px solid rgba(255,255,255,0.14);border-radius:10px;padding:8px 10px;font-size:12px;min-width:150px;z-index:5;box-shadow:0 8px 24px rgba(0,0,0,.4);display:none}
 .tip b{font-family:var(--fh)}
 .tip .tr{display:flex;justify-content:space-between;gap:12px;margin-top:3px;color:var(--soft)}
 .tip .tr span:last-child{color:var(--text);font-variant-numeric:tabular-nums}
@@ -148,14 +148,14 @@ button,input,select,textarea{font-family:var(--fb);color:var(--text)}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .seg{display:flex;gap:6px}
 .seg button{flex:1;background:var(--surf2);border:1px solid var(--border);border-radius:10px;padding:10px 4px;font-size:13px;font-weight:500;cursor:pointer}
-.seg button.on{background:rgba(240,165,0,0.15);border-color:rgba(240,165,0,0.6);color:#ffd27a;font-weight:700}
+.seg button.on{background:rgba(217,70,239,0.15);border-color:rgba(217,70,239,0.6);color:var(--acc-ink);font-weight:700}
 .seg.sport button{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px}
 .seg.sport button .e{font-size:20px}
 .actions{display:flex;gap:10px;margin-top:18px}
 .actions .sp{flex:1}
-.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:#0b131c;border:1px solid rgba(240,165,0,0.4);color:var(--text);padding:11px 18px;border-radius:12px;font-size:13px;opacity:0;transition:all .25s;z-index:3000;pointer-events:none;max-width:90vw;text-align:center}
+.toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:#0c0a14;border:1px solid rgba(217,70,239,0.4);color:var(--text);padding:11px 18px;border-radius:12px;font-size:13px;opacity:0;transition:all .25s;z-index:3000;pointer-events:none;max-width:90vw;text-align:center}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
-.banner{display:flex;gap:10px;align-items:center;background:rgba(240,165,0,0.1);border:1px solid rgba(240,165,0,0.35);border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:12px}
+.banner{display:flex;gap:10px;align-items:center;background:rgba(217,70,239,0.1);border:1px solid rgba(217,70,239,0.35);border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:12px}
 .banner span{flex:1;line-height:1.4}
 .setrow{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--border);font-size:14px}
 .setrow:last-child{border-bottom:0}
@@ -169,7 +169,7 @@ button,input,select,textarea{font-family:var(--fb);color:var(--text)}
  <div class="wrap">
   <div class="topbar-row1">
     <span class="logo-icon">🏊🚴🏃</span>
-    <div class="logo">Tri Expenses</div>
+    <div class="logo">My Triathlon</div>
     <div class="logo-sub" id="HDR_SUB"></div>
   </div>
   <div class="topbar-btns">

@@ -1,4 +1,4 @@
-# Tri Expenses
+# My Triathlon
 
 Track how much the triathlon hobby costs — swim, bike, run and general.
 

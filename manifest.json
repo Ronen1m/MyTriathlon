@@ -1,14 +1,14 @@
 {
   "id": "./",
-  "name": "Tri Expenses",
-  "short_name": "Tri Expenses",
+  "name": "My Triathlon",
+  "short_name": "My Triathlon",
   "description": "Triathlon expense tracker - swim, bike, run",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0f1923",
-  "theme_color": "#0f1923",
+  "background_color": "#120f1d",
+  "theme_color": "#120f1d",
   "categories": ["finance", "sports"],
   "icons": [
     {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},

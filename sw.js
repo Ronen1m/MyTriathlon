@@ -2,7 +2,7 @@
    The page is always fetched fresh when online (so updates show right away);
    the saved copy is used only when offline. */
 var CACHE = 'mytriathlon-v3'; // change this number every time you publish an update
-var BASE = self.registration.scope; // e.g. https://ronen1m.github.io/MyTriathlon-/
+var BASE = self.registration.scope; // e.g. https://ronen1m.github.io/MyTriathlon/
 var PAGE = BASE + 'index.html';
 var FILES = [BASE, PAGE, BASE + 'manifest.json', BASE + 'icons/icon-192.png'];
 

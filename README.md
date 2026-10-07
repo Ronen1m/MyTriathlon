@@ -2,7 +2,7 @@
 
 Track how much the triathlon hobby costs — swim, bike, run and general.
 
-**Open the app:** https://ronen1m.github.io/MyTriathlon-/ (on the phone: Share → "Add to Home Screen").
+**Open the app:** https://ronen1m.github.io/MyTriathlon/ (on the phone: Share → "Add to Home Screen").
 
 ## What it does
 - **Expenses tab** – add / edit / delete expenses. Each expense has an amount, date, sport (🏊 Swim, 🚴 Bike, 🏃 Run, 🏅 General), category (gear, race entry, coaching, club/pool, maintenance, nutrition, travel, health, apps, other) and notes.

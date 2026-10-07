@@ -1,10 +1,10 @@
 {
-  "id": "./",
+  "id": "/MyTriathlon/?app=mytriathlon-v2",
   "name": "My Triathlon",
   "short_name": "My Triathlon",
   "description": "Triathlon expense tracker - swim, bike, run",
-  "start_url": "./index.html",
-  "scope": "./",
+  "start_url": "/MyTriathlon/?source=app",
+  "scope": "/MyTriathlon/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#120f1d",

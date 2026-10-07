@@ -245,6 +245,7 @@ button,input,select,textarea{font-family:var(--fb);color:var(--text)}
   <div class="setrow"><div class="t">Export to spreadsheet<small>CSV with every expense — opens in Excel</small></div><button class="btn" id="S_CSV">⬇️ CSV</button></div>
   <div class="setrow"><div class="t">Try it with sample data<small>Adds made-up expenses you can delete later</small></div><button class="btn" id="S_SAMPLE">✨ Add</button></div>
   <div class="setrow"><div class="t">Delete everything<small>Make a backup first</small></div><button class="btn danger" id="S_WIPE">🗑️ Delete</button></div>
+  <div class="setrow"><div class="t">App version<small>Should match on all your devices</small></div><b id="S_VER" style="font-family:var(--fh)"></b></div>
   <p class="note" style="margin-top:12px">Your data is saved only in this browser, on this device. Use 💾 Backup to save a copy and 📂 Import to load it on another phone or computer. Import adds expenses that aren't already here, so importing the same file twice is safe.</p>
   <div class="actions"><span class="sp"></span><button class="btn primary" id="S_CLOSE">Done</button></div>
 </div></div>
@@ -254,7 +255,7 @@ button,input,select,textarea{font-family:var(--fb);color:var(--text)}
 <script>
 (function(){
 'use strict';
-var APP_VERSION='1.0';
+var APP_VERSION='1.1'; // bump this (and CACHE in sw.js) with every update
 var KEY='triexp_v1';
 
 var SPORTS=[
@@ -726,6 +727,7 @@ function addSample(){
 $('E_SPORT').innerHTML=SPORTS.map(function(s){return '<button data-v="'+s.id+'"><span class="e">'+s.e+'</span>'+s.name+'</button>';}).join('');
 $('E_CAT').innerHTML=CATS.map(function(c){return '<option value="'+c.id+'">'+c.e+' '+c.name+'</option>';}).join('');
 $('S_CUR').value=db.settings.currency;
+$('S_VER').textContent='v'+APP_VERSION;
 
 document.addEventListener('click',function(ev){
   var t=ev.target;

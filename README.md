@@ -22,5 +22,5 @@ Settings → Pages → Deploy from branch → `main` / root.
 When you publish an update, bump `CACHE` in `sw.js` (e.g. `triexpenses-v2`).
 
 ## Files
-- `index.html` – the whole app (HTML, CSS, JS in one file)
+- `index.html` – the whole app (HTML, CSS, JS in one file). The version shown in Settings is `APP_VERSION` here; bump it together with `CACHE` in `sw.js` on every update.
 - `manifest.json`, `sw.js`, `icons/` – installable app + offline support

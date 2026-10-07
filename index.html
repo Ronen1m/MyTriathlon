@@ -63,8 +63,15 @@ button,input,select,textarea{font-family:var(--fb);color:var(--text)}
 .search{width:100%;background:var(--surf);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:14px;margin-bottom:12px}
 
 /* expense list */
-.group-h{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:16px 2px 8px;display:flex;justify-content:space-between}
-.group-h b{color:var(--soft);font-weight:700;letter-spacing:0;text-transform:none;font-size:12px}
+.group-h{display:flex;align-items:center;gap:10px;background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;cursor:pointer;user-select:none}
+.group-h .gt{flex:1;font-family:var(--fh);font-weight:700;font-size:14px}
+.group-h .gn{font-size:11px;color:var(--muted);font-weight:500;font-family:var(--fb);margin-left:6px}
+.group-h b{font-family:var(--fh);font-size:14px;font-variant-numeric:tabular-nums}
+.group-body{margin:0 0 12px 10px;padding-left:8px;border-left:2px solid var(--border)}
+.chev{color:var(--muted);font-size:16px;transition:transform .2s;flex-shrink:0;display:inline-block}
+.open>.chev,.open .chev{transform:rotate(90deg)}
+.more{background:none;border:0;color:var(--soft);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px;padding:2px 0;text-align:left}
+.more b{color:var(--text);font-weight:500}
 .row{display:flex;align-items:center;gap:12px;background:var(--surf);border:1px solid var(--border);border-radius:12px;padding:11px 12px;margin-bottom:7px;cursor:pointer}
 .row:active{transform:scale(0.99)}
 .sicon{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;position:relative}
@@ -97,7 +104,10 @@ button,input,select,textarea{font-family:var(--fb);color:var(--text)}
 .kpi.hero{grid-column:1/-1;background:linear-gradient(135deg,rgba(240,165,0,0.14),rgba(224,92,42,0.08) 60%,var(--surf));border-color:rgba(240,165,0,0.3)}
 .kpi.hero .v{font-size:34px}
 .card{background:var(--surf);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:14px}
-.card-h{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.card-h{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
+.card.open .card-h{margin-bottom:12px}
+.card-h .sum{font-size:12px;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:55%}
+.card:not(.open){padding:13px 14px}
 .card-h h3{font-family:var(--fh);font-size:15px;font-weight:700;flex:1}
 .card-h .lnk{font-size:11px;color:var(--soft);background:none;border:1px solid var(--border);border-radius:8px;padding:4px 8px;cursor:pointer}
 .legend{display:flex;flex-wrap:wrap;gap:12px;font-size:11px;color:var(--soft);margin-bottom:8px}
@@ -174,8 +184,11 @@ button,input,select,textarea{font-family:var(--fb);color:var(--text)}
   </div>
   <div class="filters">
     <div class="frow"><span class="flabel">Year</span><div class="chips" id="F_YEAR"></div></div>
-    <div class="frow"><span class="flabel">Sport</span><div class="chips" id="F_SPORT"></div></div>
-    <div class="frow"><span class="flabel">Type</span><div class="chips" id="F_FREQ"></div></div>
+    <button class="more" id="F_MORE" data-sec="filters"></button>
+    <div id="F_MORE_BODY" style="display:flex;flex-direction:column;gap:7px">
+      <div class="frow"><span class="flabel">Sport</span><div class="chips" id="F_SPORT"></div></div>
+      <div class="frow"><span class="flabel">Type</span><div class="chips" id="F_FREQ"></div></div>
+    </div>
   </div>
   <input type="file" id="F_IMPORT_FILE" accept="application/json,text/csv,.json,.csv" style="display:none">
  </div>
@@ -275,6 +288,18 @@ try{var raw=sGet(KEY);if(raw){var p=JSON.parse(raw);db.expenses=Array.isArray(p.
 function save(){sSet(KEY,JSON.stringify(db));}
 
 var state={tab:'list',year:'all',sport:'all',freq:'all',q:''};
+// which sections are expanded (everything starts collapsed)
+var openSec={};try{openSec=JSON.parse(sGet(KEY+'_open')||'{}')||{};}catch(e){}
+function isOpen(id){return !!openSec[id]||(state.q&&id.indexOf('g:')===0);}
+function toggleSec(id){if(openSec[id])delete openSec[id];else openSec[id]=1;sSet(KEY+'_open',JSON.stringify(openSec));}
+function group(id,title,count,total,body){
+  var o=isOpen(id);
+  return '<div class="group-h'+(o?' open':'')+'" data-sec="'+id+'"><span class="chev">›</span><span class="gt">'+title+'<span class="gn">'+count+'</span></span><b>'+money(total)+'</b></div>'+(o?'<div class="group-body">'+body+'</div>':'');
+}
+function card(id,title,summary,body,extra){
+  var o=isOpen(id);
+  return '<div class="card'+(o?' open':'')+'"><div class="card-h" data-sec="'+id+'"><span class="chev">›</span><h3>'+esc(title)+'</h3>'+(o&&extra?extra:'<span class="sum">'+summary+'</span>')+'</div>'+(o?body:'')+'</div>';
+}
 try{var st=JSON.parse(sGet(KEY+'_ui')||'{}');if(st.tab)state.tab=st.tab;}catch(e){}
 
 /* ---------- helpers ---------- */
@@ -335,6 +360,10 @@ function renderFilters(){
   $('F_YEAR').innerHTML=chip('year','all','All years')+ys.map(function(y){return chip('year',String(y),y);}).join('');
   $('F_SPORT').innerHTML=chip('sport','all','All')+SPORTS.map(function(s){return chip('sport',s.id,s.e+' '+s.name);}).join('');
   $('F_FREQ').innerHTML=chip('freq','all','All')+chip('freq','once','One-time')+chip('freq','monthly','🔁 Monthly');
+  var fo=isOpen('filters'),sp=state.sport==='all'?'All sports':SP[state.sport].e+' '+SP[state.sport].name,fq={all:'All types',once:'One-time',monthly:'🔁 Monthly'}[state.freq];
+  $('F_MORE').className='more'+(fo?' open':'');
+  $('F_MORE').innerHTML='<span class="chev">›</span>Sport &amp; type: <b>'+sp+' · '+fq+'</b>';
+  $('F_MORE_BODY').style.display=fo?'flex':'none';
 }
 function chip(k,v,label){return '<button class="chip'+(String(state[k])===v?' on':'')+'" data-f="'+k+'" data-v="'+v+'">'+esc(label)+'</button>';}
 
@@ -375,15 +404,14 @@ function renderList(){
   var h='';
   if(monthly.length){
     var mt=monthly.reduce(function(s,x){return s+x.total;},0);
-    h+='<div class="group-h"><span>🔁 Monthly payments</span><b>'+money(mt)+'</b></div>';
-    monthly.forEach(function(x){h+=rowHtml(x);});
+    h+=group('g:monthly','🔁 Monthly payments',monthly.filter(function(x){return isActive(x.e);}).length+' active',mt,monthly.map(rowHtml).join(''));
   }
   var groups={},order=[];
-  once.forEach(function(x){var k=x.e.date.slice(0,7);if(!groups[k]){groups[k]=[];order.push(k);}groups[k].push(x);});
+  var byYear=state.year==='all'; // all years: one section per year; one year: one section per month
+  once.forEach(function(x){var k=x.e.date.slice(0,byYear?4:7);if(!groups[k]){groups[k]=[];order.push(k);}groups[k].push(x);});
   order.forEach(function(k){
     var t=groups[k].reduce(function(s,x){return s+x.total;},0);
-    h+='<div class="group-h"><span>'+MONTHS_L[+k.slice(5)-1]+' '+k.slice(0,4)+'</span><b>'+money(t)+'</b></div>';
-    groups[k].forEach(function(x){h+=rowHtml(x);});
+    h+=group('g:'+k,byYear?k:MONTHS_L[+k.slice(5)-1]+' '+k.slice(0,4),plural(groups[k].length,'item'),t,groups[k].map(rowHtml).join(''));
   });
   $('LIST').innerHTML=h;
 }
@@ -452,23 +480,24 @@ function renderStats(){
   var cols;
   if(state.year==='all'){
     cols=ys.map(function(y){var v={};sportsShown.forEach(function(s){v[s.id]=0;});csAll.forEach(function(c){if(Math.floor(c.ym/12)===y&&v[c.e.sport]!=null)v[c.e.sport]+=c.amount;});return {label:String(y),title:String(y),v:v};});
-    h+=chartCard('Spending per year','yr',sportsShown,cols);
+    h+=chartCard('Spending per year','c:yr',sportsShown,cols);
   }else{
     var y2=+state.year;
     cols=MONTHS.map(function(m,i){var v={};sportsShown.forEach(function(s){v[s.id]=0;});cs.forEach(function(c){if(c.ym===y2*12+i&&v[c.e.sport]!=null)v[c.e.sport]+=c.amount;});return {label:m,title:MONTHS_L[i]+' '+y2,v:v};});
-    h+=chartCard('Month by month · '+y2,'mo',sportsShown,cols);
+    h+=chartCard('Month by month · '+y2,'c:yr',sportsShown,cols);
   }
 
   // by sport
   if(state.sport==='all'){
     var bs=sumBy(cs,function(c){return c.e.sport;});
     var mx=Math.max.apply(null,SPORTS.map(function(s){return bs[s.id]||0;}).concat([1]));
-    h+='<div class="card"><div class="card-h"><h3>By sport</h3></div>';
-    SPORTS.slice().sort(function(a,b){return (bs[b.id]||0)-(bs[a.id]||0);}).forEach(function(s){
+    var sorted=SPORTS.slice().sort(function(a,b){return (bs[b.id]||0)-(bs[a.id]||0);}),b1='';
+    sorted.forEach(function(s){
       var v=bs[s.id]||0;
-      h+='<div class="hbar"><div class="nm">'+s.e+' '+s.name+'</div><div class="track"><div class="fill" style="width:'+(v/mx*100)+'%;background:'+s.c+'"></div></div><div class="am">'+money(v)+'<small>'+(total?Math.round(v/total*100):0)+'%</small></div></div>';
+      b1+='<div class="hbar"><div class="nm">'+s.e+' '+s.name+'</div><div class="track"><div class="fill" style="width:'+(v/mx*100)+'%;background:'+s.c+'"></div></div><div class="am">'+money(v)+'<small>'+(total?Math.round(v/total*100):0)+'%</small></div></div>';
     });
-    h+='<p class="note">🏅 General = things shared by all three sports (triathlon race entries, watch, club membership, coaching for the whole program…).</p></div>';
+    b1+='<p class="note">🏅 General = things shared by all three sports (triathlon race entries, watch, club membership, coaching for the whole program…).</p>';
+    h+=card('c:sport','By sport',sorted[0].e+' '+sorted[0].name+' '+(total?Math.round((bs[sorted[0].id]||0)/total*100):0)+'%',b1);
   }
 
   // by category
@@ -476,17 +505,17 @@ function renderStats(){
   var ck=Object.keys(bc).filter(function(k){return bc[k]>0;}).sort(function(a,b){return bc[b]-bc[a];});
   if(ck.length){
     var mxc=bc[ck[0]];
-    h+='<div class="card"><div class="card-h"><h3>By category</h3></div>';
-    ck.forEach(function(k){var c=CT[k]||CT.other;h+='<div class="hbar"><div class="nm">'+c.e+' '+esc(c.name)+'</div><div class="track"><div class="fill" style="width:'+(bc[k]/mxc*100)+'%;background:var(--seq)"></div></div><div class="am">'+money(bc[k])+'<small>'+Math.round(bc[k]/total*100)+'%</small></div></div>';});
-    h+='</div>';
+    var b2='',c0=CT[ck[0]]||CT.other;
+    ck.forEach(function(k){var c=CT[k]||CT.other;b2+='<div class="hbar"><div class="nm">'+c.e+' '+esc(c.name)+'</div><div class="track"><div class="fill" style="width:'+(bc[k]/mxc*100)+'%;background:var(--seq)"></div></div><div class="am">'+money(bc[k])+'<small>'+Math.round(bc[k]/total*100)+'%</small></div></div>';});
+    h+=card('c:cat','By category',c0.e+' '+esc(c0.name)+' '+Math.round(bc[ck[0]]/total*100)+'%',b2);
   }
 
   // one-time vs monthly
   if(state.freq==='all'&&total){
     var mo=cs.filter(function(c){return c.e.freq==='monthly';}).reduce(function(s,c){return s+c.amount;},0),on=total-mo;
-    h+='<div class="card"><div class="card-h"><h3>One-time vs monthly</h3></div>'+
+    h+=card('c:freq','One-time vs monthly',Math.round(on/total*100)+'% / '+Math.round(mo/total*100)+'%',
       '<div class="split"><div style="width:'+(on/total*100)+'%;background:var(--seq)"></div><div style="width:'+(mo/total*100)+'%;background:#8fc0ff"></div></div>'+
-      '<div class="legend"><span><i style="background:var(--seq)"></i>One-time '+money(on)+' ('+Math.round(on/total*100)+'%)</span><span><i style="background:#8fc0ff"></i>🔁 Monthly '+money(mo)+' ('+Math.round(mo/total*100)+'%)</span></div></div>';
+      '<div class="legend"><span><i style="background:var(--seq)"></i>One-time '+money(on)+' ('+Math.round(on/total*100)+'%)</span><span><i style="background:#8fc0ff"></i>🔁 Monthly '+money(mo)+' ('+Math.round(mo/total*100)+'%)</span></div>');
   }
 
   // top 5
@@ -494,18 +523,19 @@ function renderStats(){
   var tk=Object.keys(top).sort(function(a,b){return top[b]-top[a];}).slice(0,5);
   if(tk.length){
     var byId={};db.expenses.forEach(function(e){byId[e.id]=e;});
-    h+='<div class="card"><div class="card-h"><h3>Top expenses</h3></div>';
-    tk.forEach(function(id){h+=rowHtml({e:byId[id],total:top[id],months:cs.filter(function(c){return c.e.id===id;}).length});});
-    h+='</div>';
+    var b3='';
+    tk.forEach(function(id){b3+=rowHtml({e:byId[id],total:top[id],months:cs.filter(function(c){return c.e.id===id;}).length});});
+    h+=card('c:top','Top expenses',esc(byId[tk[0]].title)+' · '+money(top[tk[0]]),b3);
   }
   el.innerHTML=h;
   bindChart();
 }
 
 var chartData=null,showTable=false;
-function chartCard(title,kind,sports,cols){
+function chartCard(title,id,sports,cols){
   chartData={sports:sports,cols:cols};
-  var h='<div class="card"><div class="card-h"><h3>'+esc(title)+'</h3><button class="lnk" data-act="table">'+(showTable?'📊 Chart':'▦ Table')+'</button></div>';
+  var best=null,bt=0;cols.forEach(function(c){var t=0;sports.forEach(function(s){t+=c.v[s.id];});if(t>bt){bt=t;best=c;}});
+  var h='';
   if(sports.length>1)h+='<div class="legend">'+sports.map(function(s){return '<span><i style="background:'+s.c+'"></i>'+s.e+' '+s.name+'</span>';}).join('')+'</div>';
   if(showTable){
     h+='<table class="tbl"><tr><th></th>'+sports.map(function(s){return '<th>'+s.e+' '+s.name+'</th>';}).join('')+(sports.length>1?'<th>Total</th>':'')+'</tr>';
@@ -515,7 +545,7 @@ function chartCard(title,kind,sports,cols){
   }else{
     h+='<div class="chart" id="CHART">'+columnsSvg(sports,cols)+'<div class="tip" id="TIP"></div></div>';
   }
-  return h+'</div>';
+  return card(id,title,best?'Highest: '+esc(best.label)+' · '+money(bt):'—',h,'<button class="lnk" data-act="table">'+(showTable?'📊 Chart':'▦ Table')+'</button>');
 }
 function niceMax(v){if(v<=0)return 1;var p=Math.pow(10,Math.floor(Math.log10(v))),n=v/p;return (n<=1?1:n<=2?2:n<=2.5?2.5:n<=5?5:10)*p;}
 function shortMoney(v){var s=money(0).replace(/[\d.,\s]/g,'');if(v>=1e6)return s+(v/1e6).toFixed(v%1e6?1:0)+'M';if(v>=1e3)return s+(v/1e3).toFixed(v%1e3?1:0)+'k';return s+Math.round(v);}
@@ -699,6 +729,7 @@ document.addEventListener('click',function(ev){
   var row=t.closest('.row');if(row){openEdit(row.dataset.id);return;}
   var a=t.closest('[data-act]');
   if(a){var k=a.dataset.act;if(k==='add')openEdit();else if(k==='sample')addSample();else if(k==='backup')backup();else if(k==='table'){showTable=!showTable;renderStats();}return;}
+  var sec=t.closest('[data-sec]');if(sec){toggleSec(sec.dataset.sec);render();return;}
   var fb=t.closest('#E_FREQ button');if(fb){form.freq=fb.dataset.v;syncForm();return;}
   var sb=t.closest('#E_SPORT button');if(sb){form.sport=sb.dataset.v;syncForm();return;}
   if(t.classList.contains('modal')){t.classList.remove('on');return;}

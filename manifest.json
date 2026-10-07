@@ -10,6 +10,8 @@
   "background_color": "#120f1d",
   "theme_color": "#120f1d",
   "categories": ["finance", "sports"],
+  "prefer_related_applications": false,
+  "related_applications": [{"platform": "webapp", "url": "https://ronen1m.github.io/MyTriathlon/manifest.json"}],
   "icons": [
     {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
     {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},

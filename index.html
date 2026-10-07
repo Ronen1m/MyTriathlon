@@ -196,6 +196,7 @@ button,input,select,textarea{font-family:var(--fb);color:var(--text)}
 </div>
 
 <div class="wrap">
+  <div id="INSTALL_BANNER" style="padding:12px 16px 0"></div>
   <div class="screen on" id="SCR_list">
     <div id="BACKUP_BANNER"></div>
     <div class="sumstrip"><span class="lbl" id="SUM_LBL">Total</span><span class="val" id="SUM_VAL">0</span></div>
@@ -245,6 +246,7 @@ button,input,select,textarea{font-family:var(--fb);color:var(--text)}
   <div class="setrow"><div class="t">Export to spreadsheet<small>CSV with every expense — opens in Excel</small></div><button class="btn" id="S_CSV">⬇️ CSV</button></div>
   <div class="setrow"><div class="t">Try it with sample data<small>Adds made-up expenses you can delete later</small></div><button class="btn" id="S_SAMPLE">✨ Add</button></div>
   <div class="setrow"><div class="t">Delete everything<small>Make a backup first</small></div><button class="btn danger" id="S_WIPE">🗑️ Delete</button></div>
+  <div class="setrow"><div class="t">Install on this phone<small id="S_INST_TXT"></small></div><button class="btn primary" id="S_INST_BTN" data-act="install" style="display:none">📲 Install</button></div>
   <div class="setrow"><div class="t">App version<small>Should match on all your devices</small></div><b id="S_VER" style="font-family:var(--fh)"></b></div>
   <p class="note" style="margin-top:12px">Your data is saved only in this browser, on this device. Use 💾 Backup to save a copy and 📂 Import to load it on another phone or computer. Import adds expenses that aren't already here, so importing the same file twice is safe.</p>
   <div class="actions"><span class="sp"></span><button class="btn primary" id="S_CLOSE">Done</button></div>
@@ -255,7 +257,7 @@ button,input,select,textarea{font-family:var(--fb);color:var(--text)}
 <script>
 (function(){
 'use strict';
-var APP_VERSION='1.2'; // bump this (and CACHE in sw.js) with every update
+var APP_VERSION='1.3'; // bump this (and CACHE in sw.js) with every update
 var KEY='triexp_v1';
 
 var SPORTS=[
@@ -735,7 +737,7 @@ document.addEventListener('click',function(ev){
   var tab=t.closest('.tab');if(tab){state.tab=tab.dataset.tab;sSet(KEY+'_ui',JSON.stringify({tab:state.tab}));render();window.scrollTo(0,0);return;}
   var row=t.closest('.row');if(row){openEdit(row.dataset.id);return;}
   var a=t.closest('[data-act]');
-  if(a){var k=a.dataset.act;if(k==='add')openEdit();else if(k==='sample')addSample();else if(k==='backup')backup();else if(k==='table'){showTable=!showTable;renderStats();}return;}
+  if(a){var k=a.dataset.act;if(k==='add')openEdit();else if(k==='sample')addSample();else if(k==='backup')backup();else if(k==='install')doInstall();else if(k==='noinstall'){sSet(KEY+'_noinst','1');updateInstall();}else if(k==='table'){showTable=!showTable;renderStats();}return;}
   var sec=t.closest('[data-sec]');if(sec){toggleSec(sec.dataset.sec);render();return;}
   var fb=t.closest('#E_FREQ button');if(fb){form.freq=fb.dataset.v;syncForm();return;}
   var sb=t.closest('#E_SPORT button');if(sb){form.sport=sb.dataset.v;syncForm();return;}
@@ -757,7 +759,34 @@ $('SEARCH').oninput=function(){state.q=this.value;renderList();};
 document.addEventListener('keydown',function(e){if(e.key==='Escape')document.querySelectorAll('.modal.on').forEach(function(m){m.classList.remove('on');});});
 
 render();
-if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(function(){});
+if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'))navigator.serviceWorker.register('sw.js').catch(function(){});
+
+/* ---------- install as an app ----------
+   Chrome (Android / desktop) fires 'beforeinstallprompt' when the app can be installed;
+   we keep it and show our own Install button, which opens Chrome's install dialog. */
+var deferredPrompt=null,installedHere=false;
+function isStandalone(){try{return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;}catch(e){return false;}}
+function installStatus(){
+  if(isStandalone())return 'You are using the installed app ✓';
+  if(deferredPrompt)return 'Adds My Triathlon to your home screen';
+  if(installedHere)return 'Already installed on this phone — look for “My Triathlon” in your apps list. To install again, first uninstall it in Android Settings → Apps.';
+  if(/iPhone|iPad|iPod/.test(navigator.userAgent))return 'In Safari: Share → Add to Home Screen';
+  return 'Chrome menu ⋮ → Install app (or Add to Home screen)';
+}
+function updateInstall(){
+  $('S_INST_TXT').textContent=installStatus();
+  $('S_INST_BTN').style.display=deferredPrompt?'':'none';
+  $('INSTALL_BANNER').innerHTML=deferredPrompt&&!sGet(KEY+'_noinst')?'<div class="banner" style="margin:0">📲<span><b>Install My Triathlon</b><br>Add it to your home screen as an app.</span><button class="btn primary" data-act="install" style="padding:7px 12px">Install</button><button class="btn ghost" data-act="noinstall" style="padding:7px 8px" aria-label="Hide">✕</button></div>':'';
+}
+function doInstall(){
+  if(!deferredPrompt){toast(installStatus());return;}
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(function(r){if(r&&r.outcome==='accepted')deferredPrompt=null;updateInstall();}).catch(function(){});
+}
+window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;updateInstall();});
+window.addEventListener('appinstalled',function(){deferredPrompt=null;installedHere=true;updateInstall();toast('Installed! Open My Triathlon from your home screen');});
+if(navigator.getInstalledRelatedApps)navigator.getInstalledRelatedApps().then(function(a){installedHere=!!(a&&a.length);updateInstall();}).catch(function(){});
+updateInstall();
 })();
 </script>
 </body>

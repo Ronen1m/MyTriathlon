@@ -40,7 +40,7 @@ button,input,select,textarea{font-family:var(--fb);color:var(--text)}
 .tbtn .ticon{font-size:16px;line-height:1}
 .tbtn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent;font-weight:700}
 .tabs{display:flex;gap:4px;background:var(--surf);border-radius:12px;padding:4px;margin-bottom:10px}
-.tab{flex:1;background:none;border:0;border-radius:9px;padding:9px;font-family:var(--fh);font-weight:700;font-size:14px;color:var(--muted);cursor:pointer}
+.tab{flex:1;background:none;border:0;border-radius:9px;padding:9px 4px;font-family:var(--fh);font-weight:700;font-size:13px;white-space:nowrap;color:var(--muted);cursor:pointer}
 .tab.on{background:var(--surf2);color:var(--text)}
 
 /* filters */
@@ -162,6 +162,26 @@ button,input,select,textarea{font-family:var(--fb);color:var(--text)}
 .setrow:last-child{border-bottom:0}
 .setrow .t{flex:1}
 .setrow .t small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+/* races */
+.rmeta{font-size:12px;color:var(--soft);margin:-4px 0 12px;line-height:1.5}
+.rkpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.rkpis .kpi .v{font-size:17px}
+.legbar{display:flex;gap:2px;height:16px;border-radius:4px;overflow:hidden;margin-bottom:12px}
+.legbar div{height:100%}
+.leg{display:grid;grid-template-columns:26px 1fr auto auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.leg:last-child{border-bottom:0}
+.leg .ic{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px}
+.leg .nm small{display:block;color:var(--muted);font-size:11px}
+.leg .tm{font-family:var(--fh);font-weight:700;font-variant-numeric:tabular-nums}
+.leg .pl{font-size:11px;color:var(--soft);min-width:44px;text-align:right}
+.sub{margin-top:12px;border-top:1px solid var(--border);padding-top:10px}
+.sub-h{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:700;user-select:none}
+.sub-h .sum{margin-left:auto;font-size:11px;color:var(--muted);font-weight:500}
+.sub .tbl{margin-top:8px}
+.tbl tr.me td{color:var(--acc-ink);font-weight:700}
+.rphoto{width:100%;max-height:260px;object-fit:cover;border-radius:10px;margin-bottom:12px;display:block}
+.rlinks{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.rlinks a{font-size:12px;color:var(--text);text-decoration:none;background:var(--surf2);border:1px solid var(--border);border-radius:9px;padding:7px 11px}
 @media(max-width:380px){.hbar{grid-template-columns:96px 1fr 80px}.tbtn{font-size:10px}}
 </style>
 </head>
@@ -182,8 +202,9 @@ button,input,select,textarea{font-family:var(--fb);color:var(--text)}
   <div class="tabs">
     <button class="tab on" data-tab="list">📋 Expenses</button>
     <button class="tab" data-tab="stats">📊 Statistics</button>
+    <button class="tab" data-tab="races">🏁 Races</button>
   </div>
-  <div class="filters">
+  <div class="filters" id="FILTERS">
     <div class="frow"><span class="flabel">Year</span><div class="chips" id="F_YEAR"></div></div>
     <button class="more" id="F_MORE" data-sec="filters"></button>
     <div id="F_MORE_BODY" style="display:flex;flex-direction:column;gap:7px">
@@ -205,6 +226,9 @@ button,input,select,textarea{font-family:var(--fb);color:var(--text)}
   </div>
   <div class="screen" id="SCR_stats">
     <div id="STATS"></div>
+  </div>
+  <div class="screen" id="SCR_races">
+    <div id="RACES"></div>
   </div>
 </div>
 
@@ -257,7 +281,7 @@ button,input,select,textarea{font-family:var(--fb);color:var(--text)}
 <script>
 (function(){
 'use strict';
-var APP_VERSION='1.3'; // bump this (and CACHE in sw.js) with every update
+var APP_VERSION='1.4'; // bump this (and CACHE in sw.js) with every update
 var KEY='triexp_v1';
 
 var SPORTS=[
@@ -595,13 +619,64 @@ function bindChart(){
   ch.addEventListener('mouseleave',function(){tip.style.display='none';});
 }
 
+/* ---------- races (results copied from 4sport-live.com) ---------- */
+var RACES=[
+  {id:'eilat-2025',name:'Eilat Triathlon 2025',he:'טריאתלון אילת 2025',date:'2025-12-05',category:'Olympic · שלשות אולימפי',dist:{swim:1.5,bike:40,run:10},
+   event:3952,bib:2585,photo:'https://media.4sport-live.com/images/1750/2585.JPG?v=2',video:'https://media.4sport-live.com/videos/1750/2585.mp4',
+   total:'03:07:50',overall:'5/10',catPlace:'5/10',
+   legs:[['swim','00:33:21','4/10'],['t1','00:07:43','8/10'],['bike','01:21:39','3/10'],['t2','00:01:49','4/10'],['run','01:03:19','6/10']],
+   splits:[['07:28:25','00:33:21','00:33:21','Swim End'],['07:36:08','00:41:04','00:07:43','Bike Start'],['07:38:43','00:43:40','00:02:36','Bike Icemal'],['07:56:09','01:01:06','00:17:26','Bike North'],['08:07:32','01:12:29','00:11:23','Bike South'],['08:17:13','01:22:09','00:09:40','Bike Icemal'],['08:35:28','01:40:25','00:18:16','Bike North'],['08:46:47','01:51:44','00:11:19','Bike South'],['08:57:46','02:02:43','00:10:59','Bike End'],['08:59:35','02:04:31','00:01:48','Run Start'],['09:00:26','02:05:23','00:00:52','Run Close'],['09:05:05','02:10:02','00:04:39','Run Far'],['09:10:23','02:15:20','00:05:18','Run Close'],['09:15:14','02:20:11','00:04:51','Run Far'],['09:20:35','02:25:31','00:05:20','Run Close'],['09:25:19','02:30:16','00:04:45','Run Far'],['09:30:33','02:35:30','00:05:14','Run Close'],['09:35:30','02:40:27','00:04:57','Run Far'],['09:41:06','02:46:03','00:05:36','Run Close'],['09:46:05','02:51:02','00:04:59','Run Far'],['09:51:43','02:56:40','00:05:38','Run Close'],['09:56:39','03:01:35','00:04:55','Run Far'],['10:02:53','03:07:50','00:06:15','Finish']],
+   rivals:[['ממן אור','The Buttons','02:32:07'],['דרי כפיר לוחם','בית הלוחם ירושלים','02:52:27'],['כדורי הדר','The Buttons','02:57:14'],['שטולץ גיא','','03:07:43'],['מימון רונן','','03:07:50',1],['לבנה שמעון','בית הלוחם חיפה','03:28:19'],['בן הרוש שמעון','בית הלוחם חיפה','03:21:23'],['אליהו רונן','','03:43:55']]}
+];
+var LEGS={swim:{n:'Swim',e:'🏊',c:'var(--swim)'},t1:{n:'T1',e:'⇄',c:'#5f587a',sub:'Swim → bike'},bike:{n:'Bike',e:'🚴',c:'var(--bike)'},t2:{n:'T2',e:'⇄',c:'#5f587a',sub:'Bike → run'},run:{n:'Run',e:'🏃',c:'var(--run)'}};
+function tsec(t){var p=String(t).split(':').map(Number);return p.length===3?p[0]*3600+p[1]*60+p[2]:p[0]*60+p[1];}
+function fsec(x){x=Math.round(x);var h=Math.floor(x/3600),m=Math.floor(x%3600/60),s=x%60;return (h?h+':'+pad(m):m)+':'+pad(s);}
+function pace(leg,t,d){
+  if(!d||!d[leg])return '';var sec=tsec(t);
+  if(leg==='swim')return fsec(sec/(d.swim*10))+' /100m';
+  if(leg==='bike')return (d.bike/(sec/3600)).toFixed(1)+' km/h';
+  if(leg==='run')return fsec(sec/d.run)+' /km';return '';
+}
+function raceUrl(r){return 'https://www.4sport-live.com/personal/home3?event='+r.event+'&bib='+r.bib+'&lan=H';}
+function renderRaces(){
+  var list=RACES.slice().sort(function(a,b){return a.date<b.date?1:-1;});
+  var h='<div class="kpis"><div class="kpi"><div class="k">Triathlons</div><div class="v">'+list.length+'</div><div class="s">results from 4sport</div></div>';
+  var best=list.reduce(function(b,r){var p=r.overall.split('/').map(Number);return !b||p[0]<b.p?{r:r,p:p[0]}:b;},null);
+  h+='<div class="kpi"><div class="k">Best place</div><div class="v">'+(best?best.r.overall:'—')+'</div><div class="s">'+(best?esc(best.r.name):'')+'</div></div></div>';
+  list.forEach(function(r){
+    var tot=r.legs.reduce(function(s,l){return s+tsec(l[1]);},0),b='';
+    if(r.photo)b+='<img class="rphoto" loading="lazy" src="'+r.photo+'" alt="" onerror="this.remove()">';
+    b+='<div class="rmeta">'+fmtDate(r.date)+' · '+esc(r.category)+' · Bib '+r.bib+'</div>';
+    b+='<div class="rkpis"><div class="kpi"><div class="k">Time</div><div class="v">'+r.total+'</div></div><div class="kpi"><div class="k">Overall</div><div class="v">'+r.overall+'</div></div><div class="kpi"><div class="k">Category</div><div class="v">'+r.catPlace+'</div></div></div>';
+    b+='<div class="legbar">'+r.legs.map(function(l){return '<div title="'+LEGS[l[0]].n+' '+l[1]+'" style="width:'+(tsec(l[1])/tot*100)+'%;background:'+LEGS[l[0]].c+'"></div>';}).join('')+'</div>';
+    b+=r.legs.map(function(l){var g=LEGS[l[0]],pc=pace(l[0],l[1],r.dist);
+      return '<div class="leg"><span class="ic" style="background:color-mix(in srgb,'+g.c+' 30%,transparent)">'+g.e+'</span><span class="nm">'+g.n+'<small>'+(pc||g.sub||'')+'</small></span><span class="tm">'+l[1]+'</span><span class="pl">'+l[2]+'</span></div>';}).join('');
+    if(r.dist)b+='<p class="note" style="margin-top:6px">Pace is based on standard Olympic distances ('+r.dist.swim+' km / '+r.dist.bike+' km / '+r.dist.run+' km).</p>';
+    var so=isOpen('r:'+r.id+':splits');
+    b+='<div class="sub"><div class="sub-h'+(so?' open':'')+'" data-sec="r:'+r.id+':splits"><span class="chev">›</span>All checkpoints<span class="sum">'+r.splits.length+'</span></div>';
+    if(so)b+='<table class="tbl"><tr><th>Checkpoint</th><th>Clock</th><th>Race time</th><th>Segment</th></tr>'+r.splits.map(function(x){return '<tr><td>'+esc(x[3])+'</td><td>'+x[0]+'</td><td>'+x[1]+'</td><td>'+x[2]+'</td></tr>';}).join('')+'</table>';
+    b+='</div>';
+    if(r.rivals&&r.rivals.length){
+      var ro=isOpen('r:'+r.id+':rivals'),rv=r.rivals.slice().sort(function(a,c){return tsec(a[2])-tsec(c[2]);}),lead=tsec(rv[0][2]);
+      b+='<div class="sub"><div class="sub-h'+(ro?' open':'')+'" data-sec="r:'+r.id+':rivals"><span class="chev">›</span>My competitors<span class="sum">'+rv.length+'</span></div>';
+      if(ro)b+='<table class="tbl"><tr><th>Name</th><th>Time</th><th>Gap</th></tr>'+rv.map(function(x){return '<tr'+(x[3]?' class="me"':'')+'><td dir="auto">'+esc(x[0])+(x[1]?'<br><small style="color:var(--muted)">'+esc(x[1])+'</small>':'')+'</td><td>'+x[2]+'</td><td>'+(tsec(x[2])>lead?'+'+fsec(tsec(x[2])-lead):'—')+'</td></tr>';}).join('')+'</table>';
+      b+='</div>';
+    }
+    b+='<div class="rlinks"><a href="'+raceUrl(r)+'" target="_blank" rel="noopener">Open on 4sport ↗</a>'+(r.video?'<a href="'+r.video+'" target="_blank" rel="noopener">▶ Finish video</a>':'')+'</div>';
+    h+=card('r:'+r.id,'🏁 '+r.name,r.total+' · '+r.overall,b);
+  });
+  $('RACES').innerHTML=h;
+}
+
 /* ---------- render ---------- */
 function render(){
   renderFilters();
   document.querySelectorAll('.tab').forEach(function(t){t.classList.toggle('on',t.dataset.tab===state.tab);});
   $('SCR_list').classList.toggle('on',state.tab==='list');
   $('SCR_stats').classList.toggle('on',state.tab==='stats');
-  if(state.tab==='list')renderList();else renderStats();
+  $('SCR_races').classList.toggle('on',state.tab==='races');
+  $('FILTERS').style.display=state.tab==='races'?'none':'';
+  if(state.tab==='list')renderList();else if(state.tab==='stats')renderStats();else renderRaces();
   var n=db.expenses.length;$('HDR_SUB').textContent=n?plural(n,'expense'):'';
 }
 

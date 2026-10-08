@@ -1,6 +1,6 @@
 """Looks up Ronen Maimon's triathlon results on 4sport-live.com and writes races.json.
 
-Runs every day on GitHub (see .github/workflows/races.yml). The app's
+Runs on GitHub when you press 🔄 in the app's Races tab (see .github/workflows/races.yml). The app's
 "Check for new races" button reads races.json and asks before adding anything.
 
 Local test with saved pages:  python tools/check_races.py --offline debug

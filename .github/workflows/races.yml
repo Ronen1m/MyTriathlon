@@ -1,7 +1,5 @@
-name: Check 4sport for new races
+name: Check 4sport for new races   # started by the 🔄 button in the app (or by hand)
 on:
-  schedule:
-    - cron: '17 5 * * *'   # every day 08:17 Israel time
   workflow_dispatch:
   push:
     paths: ['tools/check_races.py', '.github/workflows/races.yml']

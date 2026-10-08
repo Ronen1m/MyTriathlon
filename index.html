@@ -271,6 +271,8 @@ button,input,select,textarea{font-family:var(--fb);color:var(--text)}
   <div class="setrow"><div class="t">Try it with sample data<small>Adds made-up expenses you can delete later</small></div><button class="btn" id="S_SAMPLE">✨ Add</button></div>
   <div class="setrow"><div class="t">Delete everything<small>Make a backup first</small></div><button class="btn danger" id="S_WIPE">🗑️ Delete</button></div>
   <div class="setrow"><div class="t">Install on this phone<small id="S_INST_TXT"></small></div><button class="btn primary" id="S_INST_BTN" data-act="install" style="display:none">📲 Install</button></div>
+  <div class="setrow" style="flex-wrap:wrap"><div class="t">GitHub key for 🔄 race check<small>Lets the 🔄 button in Races check 4sport right away. Saved only on this device.</small></div>
+    <input id="S_GH" type="password" placeholder="github_pat_…" autocomplete="off" style="flex:1 1 100%;background:var(--surf2);border:1px solid var(--border);border-radius:8px;padding:9px 10px;font-size:13px"></div>
   <div class="setrow"><div class="t">App version<small>Should match on all your devices</small></div><b id="S_VER" style="font-family:var(--fh)"></b></div>
   <p class="note" style="margin-top:12px">Your data is saved only in this browser, on this device. Use 💾 Backup to save a copy and 📂 Import to load it on another phone or computer. Import adds expenses that aren't already here, so importing the same file twice is safe.</p>
   <div class="actions"><span class="sp"></span><button class="btn primary" id="S_CLOSE">Done</button></div>
@@ -283,7 +285,7 @@ button,input,select,textarea{font-family:var(--fb);color:var(--text)}
 <script>
 (function(){
 'use strict';
-var APP_VERSION='1.7'; // bump this (and CACHE in sw.js) with every update
+var APP_VERSION='1.8'; // bump this (and CACHE in sw.js) with every update
 var KEY='triexp_v1';
 
 var SPORTS=[
@@ -349,7 +351,7 @@ function money(v,dec){
   return _nf[k].format(v||0);
 }
 function amt(v){return money(v,Math.round(v)!==v);} // show cents only when there are cents
-function toast(m){var t=$('TOAST');t.textContent=m;t.classList.add('on');clearTimeout(toast._t);toast._t=setTimeout(function(){t.classList.remove('on');},2600);}
+function toast(m,ms){var t=$('TOAST');t.textContent=m;t.classList.add('on');clearTimeout(toast._t);toast._t=setTimeout(function(){t.classList.remove('on');},ms||2600);}
 function plural(n,w){return n+' '+w+(n===1?'':'s');}
 
 /* ---------- money math ----------
@@ -660,21 +662,27 @@ var rtype=sGet(KEY+'_rtype')||'';
 function legSec(r,k){for(var i=0;i<r.legs.length;i++)if(r.legs[i][0]===k)return tsec(r.legs[i][1]);return 0;}
 function raceShort(r){return r.name.replace(/\s*(Triathlon|טריאתלון)\s*/i,' ').replace(/\s+/g,' ').trim();}
 /* column chart of times (lower = faster); best bar labelled */
+function xLabel(r,x,H){var d=String(r.date||'');return '<text x="'+x+'" y="'+(H-19)+'" text-anchor="middle">'+esc(raceShort(r).replace(/\s*\d{4}$/,''))+'</text><text x="'+x+'" y="'+(H-5)+'" text-anchor="middle" style="font-size:10px;opacity:.8">'+d.slice(5,7)+'-'+d.slice(0,4)+'</text>';}
+function trendLine(pts){ // line through the tops of the columns, oldest -> newest
+  if(pts.length<2)return '';
+  return '<polyline points="'+pts.map(function(p){return p[0].toFixed(1)+','+p[1].toFixed(1);}).join(' ')+'" fill="none" stroke="#f3f0fa" stroke-opacity=".75" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>'+
+    pts.map(function(p){return '<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="4" fill="#f3f0fa" stroke="#1d1830" stroke-width="2"/>';}).join('');
+}
 function timeBars(races,valFn,color,height){
-  var W=Math.max(260,Math.min(700,($('RACES').clientWidth||360)-30)),H=height||150,L=44,R=4,T=16,B=22,pw=W-L-R,ph=H-T-B;
+  var W=Math.max(260,Math.min(700,($('RACES').clientWidth||360)-30)),H=height||170,L=44,R=4,T=22,B=36,pw=W-L-R,ph=H-T-B,pts=[],labs='';
   var vals=races.map(valFn),mx=Math.max.apply(null,vals.concat([1]));
   var step=[30,60,120,300,600,900,1800,3600,7200].filter(function(x){return mx/x<=4;})[0]||3600,top=Math.ceil(mx/step)*step;
   var n=races.length,slot=pw/n,bw=Math.min(slot*0.55,48),best=Math.min.apply(null,vals.filter(function(v){return v>0;}).concat([Infinity]));
   var s='<svg viewBox="0 0 '+W+' '+H+'">';
   for(var g=0;g<=top;g+=step){var y=T+ph-ph*g/top;s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y+'" y2="'+y+'" stroke="rgba(255,255,255,'+(g?0.06:0.18)+')"/><text x="'+(L-6)+'" y="'+(y+4)+'" text-anchor="end">'+fsec(g)+'</text>';}
   races.forEach(function(r,i){var v=vals[i],hh=v/top*ph,x=L+slot*i+(slot-bw)/2,y=T+ph-hh;
-    if(v>0)s+='<path d="'+roundTop(x,y,bw,hh,Math.min(4,hh))+'" fill="'+color+'"><title>'+esc(r.name)+': '+fsec(v)+'</title></path>';
-    s+='<text x="'+(x+bw/2)+'" y="'+(y-5)+'" text-anchor="middle" style="fill:'+(v===best&&n>1?'var(--text)':'var(--soft)')+';font-weight:700">'+(v?fsec(v):'–')+(v===best&&n>1?' ★':'')+'</text>';
-    s+='<text x="'+(x+bw/2)+'" y="'+(H-6)+'" text-anchor="middle">'+esc(raceShort(r))+'</text>';});
-  return s+'</svg>';
+    if(v>0){s+='<path d="'+roundTop(x,y,bw,hh,Math.min(4,hh))+'" fill="'+color+'"><title>'+esc(r.name)+': '+fsec(v)+'</title></path>';pts.push([x+bw/2,y]);}
+    labs+='<text x="'+(x+bw/2)+'" y="'+(y-9)+'" text-anchor="middle" style="fill:'+(v===best&&n>1?'var(--text)':'var(--soft)')+';font-weight:700;paint-order:stroke;stroke:#1d1830;stroke-width:3px">'+(v?fsec(v):'–')+(v===best&&n>1?' ★':'')+'</text>';
+    s+=xLabel(r,x+bw/2,H);});
+  return s+trendLine(pts)+labs+'</svg>';
 }
 function stackedRaces(races){
-  var W=Math.max(260,Math.min(700,($('RACES').clientWidth||360)-30)),H=190,L=44,R=4,T=16,B=22,pw=W-L-R,ph=H-T-B;
+  var W=Math.max(260,Math.min(700,($('RACES').clientWidth||360)-30)),H=210,L=44,R=4,T=22,B=36,pw=W-L-R,ph=H-T-B,pts=[],labs='';
   var keys=['swim','t1','bike','t2','run'],tots=races.map(function(r){return keys.reduce(function(a,k){return a+legSec(r,k);},0);}),mx=Math.max.apply(null,tots.concat([1]));
   var step=[600,900,1800,3600,7200].filter(function(x){return mx/x<=5;})[0]||7200,top=Math.ceil(mx/step)*step;
   var n=races.length,slot=pw/n,bw=Math.min(slot*0.55,56),s='<svg viewBox="0 0 '+W+' '+H+'">';
@@ -682,13 +690,15 @@ function stackedRaces(races){
   races.forEach(function(r,i){var x=L+slot*i+(slot-bw)/2,y=T+ph,segs=keys.filter(function(k){return legSec(r,k)>0;});
     segs.forEach(function(k,si){var hh=legSec(r,k)/top*ph,gap=si>0?2:0,h2=Math.max(hh-gap,0.5),c=LEGS[k].hex;
       s+=(si===segs.length-1?'<path d="'+roundTop(x,y-hh,bw,h2,Math.min(4,h2))+'"':'<rect x="'+x+'" y="'+(y-hh)+'" width="'+bw+'" height="'+h2+'"')+' fill="'+c+'"><title>'+LEGS[k].n+' '+fsec(legSec(r,k))+'</title>'+(si===segs.length-1?'</path>':'</rect>');y-=hh;});
-    s+='<text x="'+(x+bw/2)+'" y="'+(y-5)+'" text-anchor="middle" style="fill:var(--soft);font-weight:700">'+fsec(tsec(r.total))+'</text><text x="'+(x+bw/2)+'" y="'+(H-6)+'" text-anchor="middle">'+esc(raceShort(r))+'</text>';});
-  return s+'</svg>';
+    pts.push([x+bw/2,y]);
+    labs+='<text x="'+(x+bw/2)+'" y="'+(y-9)+'" text-anchor="middle" style="fill:var(--soft);font-weight:700;paint-order:stroke;stroke:#1d1830;stroke-width:3px">'+fsec(tsec(r.total))+'</text>';
+    s+=xLabel(r,x+bw/2,H);});
+  return s+trendLine(pts)+labs+'</svg>';
 }
 function renderRaces(){
   var counts={};db.races.forEach(function(r){counts[r.type]=(counts[r.type]||0)+1;});
   if(!rtype||!TY[rtype])rtype=(TYPES.filter(function(t){return counts[t.id];})[0]||TYPES[0]).id;
-  var h='<div style="display:flex;gap:8px;align-items:center;margin-bottom:12px"><div class="chips" style="flex:1">'+TYPES.map(function(t){return '<button class="chip'+(rtype===t.id?' on':'')+'" data-rtype="'+t.id+'">'+t.n+' <span style="opacity:.6">'+(counts[t.id]||0)+'</span></button>';}).join('')+'</div><button class="chip" data-act="checkraces" title="Check 4sport for new races" aria-label="Check 4sport for new races">🔄</button></div>';
+  var h='<div style="display:flex;gap:8px;align-items:center;margin-bottom:12px"><div class="chips" style="flex:1">'+TYPES.map(function(t){return '<button class="chip'+(rtype===t.id?' on':'')+'" data-rtype="'+t.id+'">'+t.n+' <span style="opacity:.6">'+(counts[t.id]||0)+'</span></button>';}).join('')+'</div><button class="chip'+(checking?' on':'')+'" data-act="checkraces" title="Check 4sport for new races" aria-label="Check 4sport for new races">🔄</button></div><div id="RACE_STATUS" class="banner" style="'+(checking?'':'display:none')+'">🔄 Checking 4sport… (about a minute)</div>';
   var list=db.races.filter(function(r){return r.type===rtype;}).sort(function(a,b){return a.date<b.date?1:-1;});
   if(!list.length){$('RACES').innerHTML=h+'<div class="empty"><div class="big">🏁</div><h3>No '+TY[rtype].n+' races yet</h3><p>Send Claude the 4sport link of a '+TY[rtype].n.toLowerCase()+' race and it will be added here.</p></div>';return;}
   var fastest=list.reduce(function(b,r){return !b||tsec(r.total)<tsec(b.total)?r:b;},null);
@@ -739,9 +749,42 @@ function renderRaces(){
    Here we compare that file with the races already in the app and ask before adding. */
 var found=[];
 function raceChanged(old,nw){return nw.legs&&nw.legs.length&&((nw.splits||[]).length>(old.splits||[]).length||(nw.rivals||[]).length>(old.rivals||[]).length||(!old.photo&&nw.photo));}
+var GH_REPO='https://api.github.com/repos/Ronen1m/MyTriathlon';
+function ghToken(){return (sGet(KEY+'_ghtoken')||'').trim();}
+function gh(path,opt){opt=opt||{};opt.headers=Object.assign({'Authorization':'Bearer '+ghToken(),'Accept':'application/vnd.github+json'},opt.headers||{});return fetch(GH_REPO+path,opt);}
+var checking=false;
 function checkRaces(){
-  toast('Checking 4sport…');
-  fetch('races.json?t='+Date.now(),{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error(r.status);return r.json();}).then(function(d){
+  if(checking){toast('Still checking 4sport…');return;}
+  if(!ghToken()){ // no key: show what the last check found
+    toast('Add your GitHub key in ⚙️ Settings to check 4sport right now',4000);
+    fetch('races.json?t='+Date.now(),{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error(r.status);return r.json();}).then(showFound).catch(function(){});
+    return;
+  }
+  // ask GitHub to run the 4sport check now, wait for it, then read the result
+  checking=true;var t0=Date.now();setRaceStatus('🔄 Checking 4sport… (about a minute)');
+  gh('/actions/workflows/races.yml/dispatches',{method:'POST',body:JSON.stringify({ref:'main'})}).then(function(r){
+    if(r.status!==204)throw new Error(r.status===401||r.status===403||r.status===404?'key':'start');
+    return new Promise(function(resolve,reject){
+      (function poll(){
+        if(Date.now()-t0>300000)return reject(new Error('slow'));
+        setTimeout(function(){
+          gh('/actions/workflows/races.yml/runs?per_page=3&event=workflow_dispatch').then(function(r){return r.json();}).then(function(d){
+            var run=(d.workflow_runs||[]).filter(function(x){return new Date(x.created_at).getTime()>=t0-30000;})[0];
+            if(run&&run.status==='completed'){if(run.conclusion==='success')resolve();else reject(new Error('failed'));}else poll();
+          }).catch(poll);
+        },6000);
+      })();
+    });
+  }).then(function(){
+    return gh('/contents/races.json?ref=main',{headers:{'Accept':'application/vnd.github.raw+json'}}).then(function(r){if(!r.ok)throw new Error('read');return r.json();});
+  }).then(function(d){checking=false;setRaceStatus('');showFound(d);}).catch(function(e){
+    checking=false;setRaceStatus('');
+    toast(e.message==='key'?'GitHub key was not accepted — check it in ⚙️ Settings':e.message==='slow'?'4sport check is taking long — try again in a few minutes':'Could not check 4sport right now ('+e.message+')',5000);
+  });
+}
+function setRaceStatus(m){var el=$('RACE_STATUS');if(el){el.textContent=m;el.style.display=m?'':'none';}}
+function showFound(d){
+  {
     var byId={};db.races.forEach(function(r){byId[r.id]=r;});
     found=(d.races||[]).filter(function(r){
       if(!r.legs||!r.legs.length)return false;
@@ -755,7 +798,7 @@ function checkRaces(){
       h+='<div class="row" style="cursor:default"><div class="sicon" style="background:var(--surf2)">🏁</div><div class="rinfo"><div class="rtitle"><bdi>'+esc(r.name)+'</bdi></div><div class="rsub">'+(upd?'<span class="badge">MORE DETAILS</span>':'<span class="badge">NEW</span>')+fmtDate(r.date)+' · '+(TY[r.type]?TY[r.type].n:r.type)+'</div></div><div class="ramt"><div class="big">'+esc(r.total||'')+'</div><div class="small">place '+esc(r.overall||'')+'</div></div></div>';});
     h+='<div class="actions"><button class="btn ghost" data-act="ignoreraces">✋ Ignore</button><span class="sp"></span><button class="btn primary" data-act="addraces">✅ Add</button></div>';
     $('M_FOUND_BODY').innerHTML=h;$('M_FOUND').classList.add('on');
-  }).catch(function(){toast('Could not reach the race list — try again when online');});
+  }
 }
 function addFound(){
   var n=0,u=0;
@@ -912,6 +955,8 @@ $('E_SPORT').innerHTML=SPORTS.map(function(s){return '<button data-v="'+s.id+'">
 $('E_CAT').innerHTML=CATS.map(function(c){return '<option value="'+c.id+'">'+c.e+' '+c.name+'</option>';}).join('');
 $('S_CUR').value=db.settings.currency;
 $('S_VER').textContent='v'+APP_VERSION;
+$('S_GH').value=ghToken();
+$('S_GH').onchange=function(){sSet(KEY+'_ghtoken',this.value.trim());toast(this.value.trim()?'GitHub key saved':'GitHub key removed');};
 
 document.addEventListener('click',function(ev){
   var t=ev.target;

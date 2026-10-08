@@ -281,7 +281,7 @@ button,input,select,textarea{font-family:var(--fb);color:var(--text)}
 <script>
 (function(){
 'use strict';
-var APP_VERSION='1.5'; // bump this (and CACHE in sw.js) with every update
+var APP_VERSION='1.6'; // bump this (and CACHE in sw.js) with every update
 var KEY='triexp_v1';
 
 var SPORTS=[
@@ -621,7 +621,15 @@ function bindChart(){
 
 /* ---------- races (results copied from 4sport-live.com) ---------- */
 var RACES=[
-  {id:'eilat-2025',name:'Eilat Triathlon 2025',he:'טריאתלון אילת 2025',date:'2025-12-05',category:'Olympic · שלשות אולימפי',type:'olympic',
+  {id:'ashdod-2026',name:'Ashdod Triathlon 2026',he:'טריאתלון אשדוד 2026',date:'2026-09-18',type:'sprint',category:'Men 40-44 Sprint',club:'גן שורק',
+   event:4061,url:'https://www.4sport-live.com/results/home2?event=4061&lan=H&search=%D7%9E%D7%99%D7%9E%D7%95%D7%9F',
+   total:'01:39:55',overall:'47',catPlace:'12',
+   legs:[['swim','00:22:57','#12'],['t1','00:05:55','—',1],['bike','00:39:33','#10'],['t2','00:04:10','#13'],['run','00:27:20','#14']]},
+  {id:'rishon-2026',name:'Rishon LeZion Triathlon 2026',he:'טריאתלון ראשון לציון 2026',date:'2026-05-01',type:'sprint',category:'Men 40-44 Sprint',club:'גן שורק',
+   event:4017,url:'https://www.4sport-live.com/results/home2?event=4017&lan=H&search=%D7%9E%D7%99%D7%9E%D7%95%D7%9F',
+   total:'01:34:26',overall:'65',catPlace:'12',
+   legs:[['swim','00:18:27','#9'],['t1','00:04:46','#12'],['bike','00:41:39','#11'],['t2','00:02:16','#13'],['run','00:27:20','#13']]},
+  {id:'eilat-2025',name:'Eilat Triathlon 2025',he:'טריאתלון אילת 2025',date:'2025-12-05',category:'Olympic · שלשות אולימפי',club:'גן שורק',type:'olympic',
    event:3952,bib:2585,photo:'https://media.4sport-live.com/images/1750/2585.JPG?v=2',video:'https://media.4sport-live.com/videos/1750/2585.mp4',
    total:'03:07:50',overall:'5/10',catPlace:'5/10',
    legs:[['swim','00:33:21','4/10'],['t1','00:07:43','8/10'],['bike','01:21:39','3/10'],['t2','00:01:49','4/10'],['run','01:03:19','6/10']],
@@ -637,7 +645,7 @@ function pace(leg,t,d){
   if(leg==='bike')return (d.bike/(sec/3600)).toFixed(1)+' km/h';
   if(leg==='run')return fsec(sec/d.run)+' /km';return '';
 }
-function raceUrl(r){return 'https://www.4sport-live.com/personal/home3?event='+r.event+'&bib='+r.bib+'&lan=H';}
+function raceUrl(r){if(r.url)return r.url;return 'https://www.4sport-live.com/personal/home3?event='+r.event+'&bib='+r.bib+'&lan=H';}
 var TYPES=[
   {id:'sprint',n:'Sprint',dist:{swim:0.75,bike:20,run:5}},
   {id:'olympic',n:'Olympic',dist:{swim:1.5,bike:40,run:10}},
@@ -701,16 +709,16 @@ function renderRaces(){
     r.dist=TY[r.type].dist;
     var tot=r.legs.reduce(function(s,l){return s+tsec(l[1]);},0),b='';
     if(r.photo)b+='<img class="rphoto" loading="lazy" src="'+r.photo+'" alt="" onerror="this.remove()">';
-    b+='<div class="rmeta">'+fmtDate(r.date)+' · '+esc(r.category)+' · Bib '+r.bib+'</div>';
+    b+='<div class="rmeta">'+fmtDate(r.date)+' · '+'<bdi>'+esc(r.category)+'</bdi>'+(r.bib?' · Bib '+r.bib:'')+(r.club?' · <bdi>'+esc(r.club)+'</bdi>':'')+'</div>';
     b+='<div class="rkpis"><div class="kpi"><div class="k">Time</div><div class="v">'+r.total+'</div></div><div class="kpi"><div class="k">Overall</div><div class="v">'+r.overall+'</div></div><div class="kpi"><div class="k">Category</div><div class="v">'+r.catPlace+'</div></div></div>';
     b+='<div class="legbar">'+r.legs.map(function(l){return '<div title="'+LEGS[l[0]].n+' '+l[1]+'" style="width:'+(tsec(l[1])/tot*100)+'%;background:'+LEGS[l[0]].c+'"></div>';}).join('')+'</div>';
     b+=r.legs.map(function(l){var g=LEGS[l[0]],pc=pace(l[0],l[1],r.dist);
-      return '<div class="leg"><span class="ic" style="background:color-mix(in srgb,'+g.c+' 30%,transparent)">'+g.e+'</span><span class="nm">'+g.n+'<small>'+(pc||g.sub||'')+'</small></span><span class="tm">'+l[1]+'</span><span class="pl">'+l[2]+'</span></div>';}).join('');
+      return '<div class="leg"><span class="ic" style="background:color-mix(in srgb,'+g.c+' 30%,transparent)">'+g.e+'</span><span class="nm">'+g.n+'<small>'+(l[3]?'≈ not timed separately (total minus the other parts)':(pc||g.sub||''))+'</small></span><span class="tm">'+l[1]+'</span><span class="pl">'+l[2]+'</span></div>';}).join('');
     if(r.dist)b+='<p class="note" style="margin-top:6px">Pace is based on standard '+TY[r.type].n.toLowerCase()+' distances ('+r.dist.swim+' km / '+r.dist.bike+' km / '+r.dist.run+' km).</p>';
     var so=isOpen('r:'+r.id+':splits');
-    b+='<div class="sub"><div class="sub-h'+(so?' open':'')+'" data-sec="r:'+r.id+':splits"><span class="chev">›</span>All checkpoints<span class="sum">'+r.splits.length+'</span></div>';
+    if(r.splits){b+='<div class="sub"><div class="sub-h'+(so?' open':'')+'" data-sec="r:'+r.id+':splits"><span class="chev">›</span>All checkpoints<span class="sum">'+r.splits.length+'</span></div>';
     if(so)b+='<table class="tbl"><tr><th>Checkpoint</th><th>Clock</th><th>Race time</th><th>Segment</th></tr>'+r.splits.map(function(x){return '<tr><td>'+esc(x[3])+'</td><td>'+x[0]+'</td><td>'+x[1]+'</td><td>'+x[2]+'</td></tr>';}).join('')+'</table>';
-    b+='</div>';
+    b+='</div>';}
     if(r.rivals&&r.rivals.length){
       var ro=isOpen('r:'+r.id+':rivals'),rv=r.rivals.slice().sort(function(a,c){return tsec(a[2])-tsec(c[2]);}),lead=tsec(rv[0][2]);
       b+='<div class="sub"><div class="sub-h'+(ro?' open':'')+'" data-sec="r:'+r.id+':rivals"><span class="chev">›</span>My competitors<span class="sum">'+rv.length+'</span></div>';

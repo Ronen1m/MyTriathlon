@@ -1,7 +1,7 @@
 /* Lets the app be installed and open without internet.
    The page is always fetched fresh when online (so updates show right away);
    the saved copy is used only when offline. */
-var CACHE = 'mytriathlon-v1.5'; // keep in step with APP_VERSION in index.html
+var CACHE = 'mytriathlon-v1.6'; // keep in step with APP_VERSION in index.html
 var BASE = self.registration.scope; // e.g. https://ronen1m.github.io/MyTriathlon/
 var PAGE = BASE + 'index.html';
 var FILES = [BASE, PAGE, BASE + 'manifest.json', BASE + 'icons/icon-192.png'];

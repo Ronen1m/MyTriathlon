@@ -285,7 +285,7 @@ button,input,select,textarea{font-family:var(--fb);color:var(--text)}
 <script>
 (function(){
 'use strict';
-var APP_VERSION='2.1'; // bump this (and CACHE in sw.js) with every update
+var APP_VERSION='2.2'; // bump this (and CACHE in sw.js) with every update
 var KEY='triexp_v1';
 
 var SPORTS=[
@@ -709,7 +709,7 @@ function stackedRaces(races){
 function renderRaces(){
   var counts={};db.races.forEach(function(r){counts[r.type]=(counts[r.type]||0)+1;});
   if(!rtype||!TY[rtype])rtype=(TYPES.filter(function(t){return counts[t.id];})[0]||TYPES[0]).id;
-  var h='<div style="display:flex;gap:6px;align-items:center;margin-bottom:12px"><div class="chips" style="flex:1;gap:4px">'+TYPES.map(function(t){return '<button style="padding:6px 9px" class="chip'+(rtype===t.id?' on':'')+'" data-rtype="'+t.id+'">'+typeIcon(t.id)+t.n+(counts[t.id]?' <span style="opacity:.6">'+counts[t.id]+'</span>':'')+'</button>';}).join('')+'</div><button class="chip'+(checking?' on':'')+'" style="padding:6px 9px" data-act="checkraces" title="Check 4sport for new races" aria-label="Check 4sport for new races">🔄</button></div><div id="RACE_STATUS" class="banner" style="'+(checking?'':'display:none')+'">🔄 Checking 4sport… (about a minute)</div>';
+  var h='<div style="display:flex;gap:6px;align-items:center;margin-bottom:12px"><div class="chips" style="flex:1;gap:4px">'+TYPES.map(function(t){return '<button style="padding:6px 9px" class="chip'+(rtype===t.id?' on':'')+'" data-rtype="'+t.id+'">'+t.n+(counts[t.id]?' <span style="opacity:.6">'+counts[t.id]+'</span>':'')+'</button>';}).join('')+'</div><button class="chip'+(checking?' on':'')+'" style="padding:6px 9px" data-act="checkraces" title="Check 4sport for new races" aria-label="Check 4sport for new races">🔄</button></div><div id="RACE_STATUS" class="banner" style="'+(checking?'':'display:none')+'">🔄 Checking 4sport… (about a minute)</div>';
   var list=db.races.filter(function(r){return r.type===rtype;}).sort(function(a,b){return a.date<b.date?1:-1;});
   if(!list.length){$('RACES').innerHTML=h+'<div class="empty"><div class="big">🏁</div><h3>No '+TY[rtype].n+' races yet</h3><p>Send Claude the 4sport link of a '+TY[rtype].n.toLowerCase()+' race and it will be added here.</p></div>';return;}
   var fastest=list.reduce(function(b,r){return !b||tsec(r.total)<tsec(b.total)?r:b;},null);

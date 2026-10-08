@@ -47,7 +47,7 @@ button,input,select,textarea{font-family:var(--fb);color:var(--text)}
 .filters{padding-bottom:10px;display:flex;flex-direction:column;gap:7px}
 .chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:1px}
 .chips::-webkit-scrollbar{display:none}
-.chip{flex-shrink:0;background:var(--surf);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:5px}
+.chip{flex-shrink:0;gap:5px;background:var(--surf);border:1px solid var(--border);border-radius:20px;padding:6px 12px;font-size:12px;font-weight:500;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:5px}
 .chip.on{background:rgba(217,70,239,0.15);border-color:rgba(217,70,239,0.55);color:var(--acc-ink)}
 .chip .dot{width:8px;height:8px;border-radius:50%}
 .flabel{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);align-self:center;flex-shrink:0;width:38px}
@@ -285,7 +285,7 @@ button,input,select,textarea{font-family:var(--fb);color:var(--text)}
 <script>
 (function(){
 'use strict';
-var APP_VERSION='2.0'; // bump this (and CACHE in sw.js) with every update
+var APP_VERSION='2.1'; // bump this (and CACHE in sw.js) with every update
 var KEY='triexp_v1';
 
 var SPORTS=[
@@ -662,6 +662,17 @@ var rtype=sGet(KEY+'_rtype')||'';
 function legSec(r,k){for(var i=0;i<r.legs.length;i++)if(r.legs[i][0]===k)return tsec(r.legs[i][1]);return 0;}
 function raceShort(r){return r.name.replace(/\s*(Triathlon|טריאתלון)\s*/i,' ').replace(/\s+/g,' ').trim();}
 /* column chart of times (lower = faster); best bar labelled */
+function raceName(r){return String(r.name||'').replace(/\s*\d{4}\s*$/,'');} // the date is shown separately
+function ym2(r){var d=String(r.date||'');return d.slice(5,7)+'-'+d.slice(0,4);}
+/* small distance icons (our own drawings): sprint = outline ring, olympic = blue dot, half = half-red, full = red */
+function typeIcon(id){
+  var c='<svg width="13" height="13" viewBox="0 0 14 14" aria-hidden="true" style="vertical-align:-2px">';
+  if(id==='sprint')c+='<circle cx="7" cy="7" r="5.5" fill="none" stroke="#b9b2cc" stroke-width="2"/>';
+  if(id==='olympic')c+='<circle cx="7" cy="7" r="6" fill="#3987e5"/>';
+  if(id==='half')c+='<circle cx="7" cy="7" r="5.5" fill="none" stroke="#e5484d" stroke-width="2"/><path d="M7 1 A6 6 0 0 0 7 13 Z" fill="#e5484d"/>';
+  if(id==='full')c+='<circle cx="7" cy="7" r="6" fill="#e5484d"/>';
+  return c+'</svg>';
+}
 function xLabel(r,x,H){var d=String(r.date||'');return '<text x="'+x+'" y="'+(H-19)+'" text-anchor="middle">'+esc(raceShort(r).replace(/\s*\d{4}$/,''))+'</text><text x="'+x+'" y="'+(H-5)+'" text-anchor="middle" style="font-size:10px;opacity:.8">'+d.slice(5,7)+'-'+d.slice(0,4)+'</text>';}
 function trendLine(pts){ // line through the tops of the columns, oldest -> newest
   if(pts.length<2)return '';
@@ -698,13 +709,13 @@ function stackedRaces(races){
 function renderRaces(){
   var counts={};db.races.forEach(function(r){counts[r.type]=(counts[r.type]||0)+1;});
   if(!rtype||!TY[rtype])rtype=(TYPES.filter(function(t){return counts[t.id];})[0]||TYPES[0]).id;
-  var h='<div style="display:flex;gap:8px;align-items:center;margin-bottom:12px"><div class="chips" style="flex:1">'+TYPES.map(function(t){return '<button class="chip'+(rtype===t.id?' on':'')+'" data-rtype="'+t.id+'">'+t.n+' <span style="opacity:.6">'+(counts[t.id]||0)+'</span></button>';}).join('')+'</div><button class="chip'+(checking?' on':'')+'" data-act="checkraces" title="Check 4sport for new races" aria-label="Check 4sport for new races">🔄</button></div><div id="RACE_STATUS" class="banner" style="'+(checking?'':'display:none')+'">🔄 Checking 4sport… (about a minute)</div>';
+  var h='<div style="display:flex;gap:6px;align-items:center;margin-bottom:12px"><div class="chips" style="flex:1;gap:4px">'+TYPES.map(function(t){return '<button style="padding:6px 9px" class="chip'+(rtype===t.id?' on':'')+'" data-rtype="'+t.id+'">'+typeIcon(t.id)+t.n+(counts[t.id]?' <span style="opacity:.6">'+counts[t.id]+'</span>':'')+'</button>';}).join('')+'</div><button class="chip'+(checking?' on':'')+'" style="padding:6px 9px" data-act="checkraces" title="Check 4sport for new races" aria-label="Check 4sport for new races">🔄</button></div><div id="RACE_STATUS" class="banner" style="'+(checking?'':'display:none')+'">🔄 Checking 4sport… (about a minute)</div>';
   var list=db.races.filter(function(r){return r.type===rtype;}).sort(function(a,b){return a.date<b.date?1:-1;});
   if(!list.length){$('RACES').innerHTML=h+'<div class="empty"><div class="big">🏁</div><h3>No '+TY[rtype].n+' races yet</h3><p>Send Claude the 4sport link of a '+TY[rtype].n.toLowerCase()+' race and it will be added here.</p></div>';return;}
   var fastest=list.reduce(function(b,r){return !b||tsec(r.total)<tsec(b.total)?r:b;},null);
   var best=list.reduce(function(b,r){var p=+r.overall.split('/')[0];return !b||p<b.p?{r:r,p:p}:b;},null);
-  h+='<div class="kpis"><div class="kpi"><div class="k">Fastest '+TY[rtype].n.toLowerCase()+'</div><div class="v">'+fastest.total+'</div><div class="s">'+esc(fastest.name)+'</div></div>';
-  h+='<div class="kpi"><div class="k">Best place</div><div class="v">'+best.r.overall+'</div><div class="s">'+esc(best.r.name)+'</div></div></div>';
+  h+='<div class="kpis"><div class="kpi"><div class="k">Fastest '+TY[rtype].n.toLowerCase()+'</div><div class="v">'+fastest.total+'</div><div class="s">'+esc(raceName(fastest))+' · '+ym2(fastest)+'</div></div>';
+  h+='<div class="kpi"><div class="k">Best place</div><div class="v">'+best.r.overall+'</div><div class="s">'+esc(raceName(best.r))+' · '+ym2(best.r)+'</div></div></div>';
   // charts, oldest -> newest
   var chron=list.slice().reverse(),cb='';
   cb+='<div class="legend">'+['swim','t1','bike','t2','run'].map(function(k){return '<span><i style="background:'+LEGS[k].hex+'"></i>'+LEGS[k].n+'</span>';}).join('')+'</div>';
@@ -739,7 +750,7 @@ function renderRaces(){
       b+='</div>';
     }
     b+='<div class="rlinks"><a href="'+raceUrl(r)+'" target="_blank" rel="noopener">Open on 4sport ↗</a>'+(r.video?'<a href="'+r.video+'" target="_blank" rel="noopener">▶ Finish video</a>':'')+'</div>';
-    h+=card('r:'+r.id,'🏁 '+r.name,r.total+' · '+r.overall,b);
+    h+=card('r:'+r.id,'🏁 '+raceName(r),ym2(r)+' · '+r.total,b);
   });
   $('RACES').innerHTML=h;
 }

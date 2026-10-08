@@ -285,7 +285,7 @@ button,input,select,textarea{font-family:var(--fb);color:var(--text)}
 <script>
 (function(){
 'use strict';
-var APP_VERSION='1.8'; // bump this (and CACHE in sw.js) with every update
+var APP_VERSION='1.9'; // bump this (and CACHE in sw.js) with every update
 var KEY='triexp_v1';
 
 var SPORTS=[
@@ -751,7 +751,7 @@ var found=[];
 function raceChanged(old,nw){return nw.legs&&nw.legs.length&&((nw.splits||[]).length>(old.splits||[]).length||(nw.rivals||[]).length>(old.rivals||[]).length||(!old.photo&&nw.photo));}
 var GH_REPO='https://api.github.com/repos/Ronen1m/MyTriathlon';
 function ghToken(){return (sGet(KEY+'_ghtoken')||'').trim();}
-function gh(path,opt){opt=opt||{};opt.headers=Object.assign({'Authorization':'Bearer '+ghToken(),'Accept':'application/vnd.github+json'},opt.headers||{});return fetch(GH_REPO+path,opt);}
+function gh(path,opt){opt=opt||{};opt.headers=Object.assign({'Authorization':'Bearer '+ghToken(),'Accept':'application/vnd.github+json'},opt.body?{'Content-Type':'application/json'}:{},opt.headers||{});return fetch(GH_REPO+path,opt);}
 var checking=false;
 function checkRaces(){
   if(checking){toast('Still checking 4sport…');return;}

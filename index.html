@@ -688,7 +688,7 @@ function stackedRaces(races){
 function renderRaces(){
   var counts={};db.races.forEach(function(r){counts[r.type]=(counts[r.type]||0)+1;});
   if(!rtype||!TY[rtype])rtype=(TYPES.filter(function(t){return counts[t.id];})[0]||TYPES[0]).id;
-  var h='<div style="display:flex;gap:8px;align-items:center;margin-bottom:12px"><div class="chips" style="flex:1">'+TYPES.map(function(t){return '<button class="chip'+(rtype===t.id?' on':'')+'" data-rtype="'+t.id+'">'+t.n+' <span style="opacity:.6">'+(counts[t.id]||0)+'</span></button>';}).join('')+'</div><button class="chip" data-act="checkraces" title="Look for new races on 4sport">🔄 Check</button></div>';
+  var h='<div style="display:flex;gap:8px;align-items:center;margin-bottom:12px"><div class="chips" style="flex:1">'+TYPES.map(function(t){return '<button class="chip'+(rtype===t.id?' on':'')+'" data-rtype="'+t.id+'">'+t.n+' <span style="opacity:.6">'+(counts[t.id]||0)+'</span></button>';}).join('')+'</div><button class="chip" data-act="checkraces" title="Check 4sport for new races" aria-label="Check 4sport for new races">🔄</button></div>';
   var list=db.races.filter(function(r){return r.type===rtype;}).sort(function(a,b){return a.date<b.date?1:-1;});
   if(!list.length){$('RACES').innerHTML=h+'<div class="empty"><div class="big">🏁</div><h3>No '+TY[rtype].n+' races yet</h3><p>Send Claude the 4sport link of a '+TY[rtype].n.toLowerCase()+' race and it will be added here.</p></div>';return;}
   var fastest=list.reduce(function(b,r){return !b||tsec(r.total)<tsec(b.total)?r:b;},null);
@@ -752,7 +752,7 @@ function checkRaces(){
     if(!found.length){toast('No new races found'+(when?' · checked '+when:''));return;}
     var h='<h2>Found on 4sport</h2><p class="note" style="margin-bottom:12px">Checked '+esc(when)+'. Add these to your Races?</p>';
     found.forEach(function(r){var upd=!!byId[r.id];
-      h+='<div class="row" style="cursor:default"><div class="sicon" style="background:var(--surf2)">🏁</div><div class="rinfo"><div class="rtitle"><bdi>'+esc(r.name)+'</bdi></div><div class="rsub">'+fmtDate(r.date)+' · '+(TY[r.type]?TY[r.type].n:r.type)+(upd?' · <span class="badge">MORE DETAILS</span>':' · <span class="badge">NEW</span>')+'</div></div><div class="ramt"><div class="big">'+esc(r.total||'')+'</div><div class="small">place '+esc(r.overall||'')+'</div></div></div>';});
+      h+='<div class="row" style="cursor:default"><div class="sicon" style="background:var(--surf2)">🏁</div><div class="rinfo"><div class="rtitle"><bdi>'+esc(r.name)+'</bdi></div><div class="rsub">'+(upd?'<span class="badge">MORE DETAILS</span>':'<span class="badge">NEW</span>')+fmtDate(r.date)+' · '+(TY[r.type]?TY[r.type].n:r.type)+'</div></div><div class="ramt"><div class="big">'+esc(r.total||'')+'</div><div class="small">place '+esc(r.overall||'')+'</div></div></div>';});
     h+='<div class="actions"><button class="btn ghost" data-act="ignoreraces">✋ Ignore</button><span class="sp"></span><button class="btn primary" data-act="addraces">✅ Add</button></div>';
     $('M_FOUND_BODY').innerHTML=h;$('M_FOUND').classList.add('on');
   }).catch(function(){toast('Could not reach the race list — try again when online');});

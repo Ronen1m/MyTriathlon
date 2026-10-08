@@ -276,12 +276,14 @@ button,input,select,textarea{font-family:var(--fb);color:var(--text)}
   <div class="actions"><span class="sp"></span><button class="btn primary" id="S_CLOSE">Done</button></div>
 </div></div>
 
+<div class="modal" id="M_FOUND"><div class="sheet" id="M_FOUND_BODY"></div></div>
+
 <div class="toast" id="TOAST"></div>
 
 <script>
 (function(){
 'use strict';
-var APP_VERSION='1.6'; // bump this (and CACHE in sw.js) with every update
+var APP_VERSION='1.7'; // bump this (and CACHE in sw.js) with every update
 var KEY='triexp_v1';
 
 var SPORTS=[
@@ -311,8 +313,8 @@ var _mem={};
 function sGet(k){try{return localStorage.getItem(k);}catch(e){return _mem[k]||null;}}
 function sSet(k,v){try{localStorage.setItem(k,v);}catch(e){_mem[k]=v;}}
 
-var db={expenses:[],settings:{currency:'ILS',lastBackup:null}};
-try{var raw=sGet(KEY);if(raw){var p=JSON.parse(raw);db.expenses=Array.isArray(p.expenses)?p.expenses:[];db.settings=Object.assign(db.settings,p.settings||{});}}catch(e){}
+var db={expenses:[],races:null,racesIgnored:[],settings:{currency:'ILS',lastBackup:null}};
+try{var raw=sGet(KEY);if(raw){var p=JSON.parse(raw);db.expenses=Array.isArray(p.expenses)?p.expenses:[];db.settings=Object.assign(db.settings,p.settings||{});if(Array.isArray(p.races))db.races=p.races;if(Array.isArray(p.racesIgnored))db.racesIgnored=p.racesIgnored;}}catch(e){}
 function save(){sSet(KEY,JSON.stringify(db));}
 
 var state={tab:'list',year:'all',sport:'all',freq:'all',q:''};
@@ -620,22 +622,23 @@ function bindChart(){
 }
 
 /* ---------- races (results copied from 4sport-live.com) ---------- */
-var RACES=[
-  {id:'ashdod-2026',name:'Ashdod Triathlon 2026',he:'טריאתלון אשדוד 2026',date:'2026-09-18',type:'sprint',category:'Men 40-44 Sprint',club:'גן שורק',
+var RACES_BUILTIN=[
+  {id:'ev4061',bib:2585,name:'Ashdod Triathlon 2026',he:'טריאתלון אשדוד 2026',date:'2026-09-18',type:'sprint',category:'Men 40-44 Sprint',club:'גן שורק',
    event:4061,url:'https://www.4sport-live.com/results/home2?event=4061&lan=H&search=%D7%9E%D7%99%D7%9E%D7%95%D7%9F',
    total:'01:39:55',overall:'47',catPlace:'12',
    legs:[['swim','00:22:57','#12'],['t1','00:05:55','—',1],['bike','00:39:33','#10'],['t2','00:04:10','#13'],['run','00:27:20','#14']]},
-  {id:'rishon-2026',name:'Rishon LeZion Triathlon 2026',he:'טריאתלון ראשון לציון 2026',date:'2026-05-01',type:'sprint',category:'Men 40-44 Sprint',club:'גן שורק',
+  {id:'ev4017',bib:2585,name:'Rishon LeZion Triathlon 2026',he:'טריאתלון ראשון לציון 2026',date:'2026-05-01',type:'sprint',category:'Men 40-44 Sprint',club:'גן שורק',
    event:4017,url:'https://www.4sport-live.com/results/home2?event=4017&lan=H&search=%D7%9E%D7%99%D7%9E%D7%95%D7%9F',
    total:'01:34:26',overall:'65',catPlace:'12',
    legs:[['swim','00:18:27','#9'],['t1','00:04:46','#12'],['bike','00:41:39','#11'],['t2','00:02:16','#13'],['run','00:27:20','#13']]},
-  {id:'eilat-2025',name:'Eilat Triathlon 2025',he:'טריאתלון אילת 2025',date:'2025-12-05',category:'Olympic · שלשות אולימפי',club:'גן שורק',type:'olympic',
+  {id:'ev3952',name:'Eilat Triathlon 2025',he:'טריאתלון אילת 2025',date:'2025-12-05',category:'Olympic · שלשות אולימפי',club:'גן שורק',type:'olympic',
    event:3952,bib:2585,photo:'https://media.4sport-live.com/images/1750/2585.JPG?v=2',video:'https://media.4sport-live.com/videos/1750/2585.mp4',
    total:'03:07:50',overall:'5/10',catPlace:'5/10',
    legs:[['swim','00:33:21','4/10'],['t1','00:07:43','8/10'],['bike','01:21:39','3/10'],['t2','00:01:49','4/10'],['run','01:03:19','6/10']],
    splits:[['07:28:25','00:33:21','00:33:21','Swim End'],['07:36:08','00:41:04','00:07:43','Bike Start'],['07:38:43','00:43:40','00:02:36','Bike Icemal'],['07:56:09','01:01:06','00:17:26','Bike North'],['08:07:32','01:12:29','00:11:23','Bike South'],['08:17:13','01:22:09','00:09:40','Bike Icemal'],['08:35:28','01:40:25','00:18:16','Bike North'],['08:46:47','01:51:44','00:11:19','Bike South'],['08:57:46','02:02:43','00:10:59','Bike End'],['08:59:35','02:04:31','00:01:48','Run Start'],['09:00:26','02:05:23','00:00:52','Run Close'],['09:05:05','02:10:02','00:04:39','Run Far'],['09:10:23','02:15:20','00:05:18','Run Close'],['09:15:14','02:20:11','00:04:51','Run Far'],['09:20:35','02:25:31','00:05:20','Run Close'],['09:25:19','02:30:16','00:04:45','Run Far'],['09:30:33','02:35:30','00:05:14','Run Close'],['09:35:30','02:40:27','00:04:57','Run Far'],['09:41:06','02:46:03','00:05:36','Run Close'],['09:46:05','02:51:02','00:04:59','Run Far'],['09:51:43','02:56:40','00:05:38','Run Close'],['09:56:39','03:01:35','00:04:55','Run Far'],['10:02:53','03:07:50','00:06:15','Finish']],
    rivals:[['ממן אור','The Buttons','02:32:07'],['דרי כפיר לוחם','בית הלוחם ירושלים','02:52:27'],['כדורי הדר','The Buttons','02:57:14'],['שטולץ גיא','','03:07:43'],['מימון רונן','','03:07:50',1],['לבנה שמעון','בית הלוחם חיפה','03:28:19'],['בן הרוש שמעון','בית הלוחם חיפה','03:21:23'],['אליהו רונן','','03:43:55']]}
 ];
+if(!Array.isArray(db.races)){db.races=JSON.parse(JSON.stringify(RACES_BUILTIN));save();}
 var LEGS={swim:{n:'Swim',e:'🏊',c:'var(--swim)',hex:'#3987e5'},t1:{n:'T1',e:'⇄',c:'#9aa3b0',hex:'#9aa3b0',sub:'Swim → bike'},bike:{n:'Bike',e:'🚴',c:'var(--bike)',hex:'#d95926'},t2:{n:'T2',e:'⇄',c:'#c9b8f0',hex:'#c9b8f0',sub:'Bike → run'},run:{n:'Run',e:'🏃',c:'var(--run)',hex:'#199e70'}};
 function tsec(t){var p=String(t).split(':').map(Number);return p.length===3?p[0]*3600+p[1]*60+p[2]:p[0]*60+p[1];}
 function fsec(x){x=Math.round(x);var h=Math.floor(x/3600),m=Math.floor(x%3600/60),s=x%60;return (h?h+':'+pad(m):m)+':'+pad(s);}
@@ -655,7 +658,7 @@ var TYPES=[
 var TY={};TYPES.forEach(function(t){TY[t.id]=t;});
 var rtype=sGet(KEY+'_rtype')||'';
 function legSec(r,k){for(var i=0;i<r.legs.length;i++)if(r.legs[i][0]===k)return tsec(r.legs[i][1]);return 0;}
-function raceShort(r){return r.name.replace(/\s*Triathlon\s*/i,' ').replace(/\s+/g,' ').trim();}
+function raceShort(r){return r.name.replace(/\s*(Triathlon|טריאתלון)\s*/i,' ').replace(/\s+/g,' ').trim();}
 /* column chart of times (lower = faster); best bar labelled */
 function timeBars(races,valFn,color,height){
   var W=Math.max(260,Math.min(700,($('RACES').clientWidth||360)-30)),H=height||150,L=44,R=4,T=16,B=22,pw=W-L-R,ph=H-T-B;
@@ -683,10 +686,10 @@ function stackedRaces(races){
   return s+'</svg>';
 }
 function renderRaces(){
-  var counts={};RACES.forEach(function(r){counts[r.type]=(counts[r.type]||0)+1;});
+  var counts={};db.races.forEach(function(r){counts[r.type]=(counts[r.type]||0)+1;});
   if(!rtype||!TY[rtype])rtype=(TYPES.filter(function(t){return counts[t.id];})[0]||TYPES[0]).id;
-  var h='<div class="chips" style="margin-bottom:12px">'+TYPES.map(function(t){return '<button class="chip'+(rtype===t.id?' on':'')+'" data-rtype="'+t.id+'">'+t.n+' <span style="opacity:.6">'+(counts[t.id]||0)+'</span></button>';}).join('')+'</div>';
-  var list=RACES.filter(function(r){return r.type===rtype;}).sort(function(a,b){return a.date<b.date?1:-1;});
+  var h='<div style="display:flex;gap:8px;align-items:center;margin-bottom:12px"><div class="chips" style="flex:1">'+TYPES.map(function(t){return '<button class="chip'+(rtype===t.id?' on':'')+'" data-rtype="'+t.id+'">'+t.n+' <span style="opacity:.6">'+(counts[t.id]||0)+'</span></button>';}).join('')+'</div><button class="chip" data-act="checkraces" title="Look for new races on 4sport">🔄 Check</button></div>';
+  var list=db.races.filter(function(r){return r.type===rtype;}).sort(function(a,b){return a.date<b.date?1:-1;});
   if(!list.length){$('RACES').innerHTML=h+'<div class="empty"><div class="big">🏁</div><h3>No '+TY[rtype].n+' races yet</h3><p>Send Claude the 4sport link of a '+TY[rtype].n.toLowerCase()+' race and it will be added here.</p></div>';return;}
   var fastest=list.reduce(function(b,r){return !b||tsec(r.total)<tsec(b.total)?r:b;},null);
   var best=list.reduce(function(b,r){var p=+r.overall.split('/')[0];return !b||p<b.p?{r:r,p:p}:b;},null);
@@ -729,6 +732,45 @@ function renderRaces(){
     h+=card('r:'+r.id,'🏁 '+r.name,r.total+' · '+r.overall,b);
   });
   $('RACES').innerHTML=h;
+}
+
+/* ---------- check 4sport for new races ----------
+   GitHub looks up the results every day and saves them in races.json next to this page.
+   Here we compare that file with the races already in the app and ask before adding. */
+var found=[];
+function raceChanged(old,nw){return nw.legs&&nw.legs.length&&((nw.splits||[]).length>(old.splits||[]).length||(nw.rivals||[]).length>(old.rivals||[]).length||(!old.photo&&nw.photo));}
+function checkRaces(){
+  toast('Checking 4sport…');
+  fetch('races.json?t='+Date.now(),{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error(r.status);return r.json();}).then(function(d){
+    var byId={};db.races.forEach(function(r){byId[r.id]=r;});
+    found=(d.races||[]).filter(function(r){
+      if(!r.legs||!r.legs.length)return false;
+      if(byId[r.id])return raceChanged(byId[r.id],r)&&db.racesIgnored.indexOf('upd:'+r.id)<0;
+      return db.racesIgnored.indexOf(r.id)<0;
+    });
+    var when=d.checked?new Date(d.checked).toLocaleString():'';
+    if(!found.length){toast('No new races found'+(when?' · checked '+when:''));return;}
+    var h='<h2>Found on 4sport</h2><p class="note" style="margin-bottom:12px">Checked '+esc(when)+'. Add these to your Races?</p>';
+    found.forEach(function(r){var upd=!!byId[r.id];
+      h+='<div class="row" style="cursor:default"><div class="sicon" style="background:var(--surf2)">🏁</div><div class="rinfo"><div class="rtitle"><bdi>'+esc(r.name)+'</bdi></div><div class="rsub">'+fmtDate(r.date)+' · '+(TY[r.type]?TY[r.type].n:r.type)+(upd?' · <span class="badge">MORE DETAILS</span>':' · <span class="badge">NEW</span>')+'</div></div><div class="ramt"><div class="big">'+esc(r.total||'')+'</div><div class="small">place '+esc(r.overall||'')+'</div></div></div>';});
+    h+='<div class="actions"><button class="btn ghost" data-act="ignoreraces">✋ Ignore</button><span class="sp"></span><button class="btn primary" data-act="addraces">✅ Add</button></div>';
+    $('M_FOUND_BODY').innerHTML=h;$('M_FOUND').classList.add('on');
+  }).catch(function(){toast('Could not reach the race list — try again when online');});
+}
+function addFound(){
+  var n=0,u=0;
+  found.forEach(function(r){
+    var i=-1;db.races.forEach(function(x,j){if(x.id===r.id)i=j;});
+    if(i<0){db.races.push(r);n++;}
+    else{var old=db.races[i],keep={name:old.name,club:old.club};db.races[i]=Object.assign({},old,r,keep);u++;}
+  });
+  found=[];save();$('M_FOUND').classList.remove('on');render();
+  toast((n?plural(n,'race')+' added':'')+(n&&u?' · ':'')+(u?plural(u,'race')+' updated':''));
+}
+function ignoreFound(){
+  var byId={};db.races.forEach(function(r){byId[r.id]=1;});
+  found.forEach(function(r){var k=byId[r.id]?'upd:'+r.id:r.id;if(db.racesIgnored.indexOf(k)<0)db.racesIgnored.push(k);});
+  found=[];save();$('M_FOUND').classList.remove('on');toast('OK — ignored');
 }
 
 /* ---------- render ---------- */
@@ -791,7 +833,7 @@ function download(name,text,type){
 }
 function backup(){
   db.settings.lastBackup=new Date().toISOString();save();
-  download('TriExpenses_'+fileTimestamp()+'.json',JSON.stringify({app:'TriExpenses',version:APP_VERSION,exportedAt:db.settings.lastBackup,settings:{currency:db.settings.currency},expenses:db.expenses},null,2),'application/json');
+  download('TriExpenses_'+fileTimestamp()+'.json',JSON.stringify({app:'TriExpenses',version:APP_VERSION,exportedAt:db.settings.lastBackup,settings:{currency:db.settings.currency},expenses:db.expenses,races:db.races,racesIgnored:db.racesIgnored},null,2),'application/json');
   toast('Backup downloaded ('+plural(db.expenses.length,'expense')+')');render();
 }
 var CSV_COLS=['date','title','amount','sport','category','freq','endDate','notes','id'];
@@ -838,7 +880,9 @@ function handleImport(file){
         mergeIn(rows.map(function(r){var o={};head.forEach(function(h,i){o[h]=r[i];});return o;}),null);
       }else{
         var d=JSON.parse(txt),list=Array.isArray(d)?d:(d.expenses||[]);
-        if(!list.length){toast('No expenses found in this file');return;}
+        if(d.races&&d.races.length){var hv={};db.races.forEach(function(r){hv[r.id]=1;});d.races.forEach(function(r){if(r&&r.id&&!hv[r.id]&&r.legs)db.races.push(r);});}
+        if(d.racesIgnored)d.racesIgnored.forEach(function(x){if(db.racesIgnored.indexOf(x)<0)db.racesIgnored.push(x);});
+        if(!list.length){save();render();toast(d.races?'Races imported':'No expenses found in this file');return;}
         mergeIn(list,d.settings);
       }
     }catch(err){toast('Could not read the file: '+err.message);}
@@ -876,7 +920,7 @@ document.addEventListener('click',function(ev){
   var tab=t.closest('.tab');if(tab){state.tab=tab.dataset.tab;sSet(KEY+'_ui',JSON.stringify({tab:state.tab}));render();window.scrollTo(0,0);return;}
   var row=t.closest('.row');if(row){openEdit(row.dataset.id);return;}
   var a=t.closest('[data-act]');
-  if(a){var k=a.dataset.act;if(k==='add')openEdit();else if(k==='sample')addSample();else if(k==='backup')backup();else if(k==='install')doInstall();else if(k==='noinstall'){sSet(KEY+'_noinst','1');updateInstall();}else if(k==='table'){showTable=!showTable;renderStats();}return;}
+  if(a){var k=a.dataset.act;if(k==='add')openEdit();else if(k==='sample')addSample();else if(k==='backup')backup();else if(k==='install')doInstall();else if(k==='checkraces')checkRaces();else if(k==='addraces')addFound();else if(k==='ignoreraces')ignoreFound();else if(k==='noinstall'){sSet(KEY+'_noinst','1');updateInstall();}else if(k==='table'){showTable=!showTable;renderStats();}return;}
   var sec=t.closest('[data-sec]');if(sec){toggleSec(sec.dataset.sec);render();return;}
   var fb=t.closest('#E_FREQ button');if(fb){form.freq=fb.dataset.v;syncForm();return;}
   var sb=t.closest('#E_SPORT button');if(sb){form.sport=sb.dataset.v;syncForm();return;}

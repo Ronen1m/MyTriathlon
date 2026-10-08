@@ -791,7 +791,7 @@ function showFound(d){
       if(byId[r.id])return raceChanged(byId[r.id],r)&&db.racesIgnored.indexOf('upd:'+r.id)<0;
       return db.racesIgnored.indexOf(r.id)<0;
     });
-    var when=d.checked?new Date(d.checked).toLocaleString():'';
+    var when=new Date().toLocaleString();
     if(!found.length){toast('No new races found'+(when?' · checked '+when:''));return;}
     var h='<h2>Found on 4sport</h2><p class="note" style="margin-bottom:12px">Checked '+esc(when)+'. Add these to your Races?</p>';
     found.forEach(function(r){var upd=!!byId[r.id];

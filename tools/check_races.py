@@ -162,6 +162,13 @@ def main():
         print('no races found - keeping the previous races.json')
         return
     races.sort(key=lambda r: r['date'], reverse=True)
+    if not offline and os.path.exists('races.json'):
+        try:
+            if json.load(open('races.json', encoding='utf-8')).get('races') == json.loads(json.dumps(races, ensure_ascii=False)):
+                print('no changes - races.json left as is (avoids republishing the site)')
+                return
+        except Exception:
+            pass
     out = {'source': 'https://www.4sport-live.com', 'checked': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%MZ'), 'races': races}
     path = 'races.test.json' if offline else 'races.json'
     with open(path, 'w', encoding='utf-8') as f:

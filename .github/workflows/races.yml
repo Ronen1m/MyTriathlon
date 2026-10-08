@@ -5,6 +5,9 @@ on:
     paths: ['tools/check_races.py', '.github/workflows/races.yml']
 permissions:
   contents: write
+concurrency:
+  group: races
+  cancel-in-progress: false
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -18,4 +21,4 @@ jobs:
           git config user.name "races-bot"
           git config user.email "races-bot@users.noreply.github.com"
           git add -A
-          git diff --cached --quiet || (git commit -m "Update races.json from 4sport" && git push)
+          git diff --cached --quiet || (git commit -m "Update races.json from 4sport" && git pull --rebase && git push)

@@ -191,7 +191,7 @@ button,input,select,textarea{font-family:var(--fb);color:var(--text)}
   <div class="topbar-row1">
     <span class="logo-icon">🏊🚴🏃</span>
     <div class="logo">My Triathlon</div>
-    <div class="logo-sub" id="HDR_SUB"></div>
+    <div class="logo-sub" id="HDR_SUB" style="display:none"></div>
   </div>
   <div class="topbar-btns">
     <button class="tbtn primary" id="B_ADD"><span class="ticon">＋</span>Add</button>
@@ -220,7 +220,7 @@ button,input,select,textarea{font-family:var(--fb);color:var(--text)}
   <div id="INSTALL_BANNER" style="padding:12px 16px 0"></div>
   <div class="screen on" id="SCR_list">
     <div id="BACKUP_BANNER"></div>
-    <div class="sumstrip" style="display:none"><span class="lbl" id="SUM_LBL">Total</span><span class="val" id="SUM_VAL">0</span></div>
+    <div class="sumstrip"><span class="lbl" id="SUM_LBL">Total</span><span class="val" id="SUM_VAL">0</span></div>
     <input class="search" id="SEARCH" type="search" placeholder="🔍  Search title, category, notes…">
     <div id="LIST"></div>
   </div>
@@ -285,7 +285,7 @@ button,input,select,textarea{font-family:var(--fb);color:var(--text)}
 <script>
 (function(){
 'use strict';
-var APP_VERSION='2.5'; // bump this (and CACHE in sw.js) with every update
+var APP_VERSION='2.6'; // bump this (and CACHE in sw.js) with every update
 var KEY='triexp_v1';
 
 var SPORTS=[

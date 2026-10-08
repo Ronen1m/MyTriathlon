@@ -285,7 +285,7 @@ button,input,select,textarea{font-family:var(--fb);color:var(--text)}
 <script>
 (function(){
 'use strict';
-var APP_VERSION='2.3'; // bump this (and CACHE in sw.js) with every update
+var APP_VERSION='2.4'; // bump this (and CACHE in sw.js) with every update
 var KEY='triexp_v1';
 
 var SPORTS=[
@@ -804,35 +804,33 @@ function setRaceStatus(m){var el=$('RACE_STATUS');if(el){el.textContent=m;el.sty
 function showFound(d){
   {
     var byId={};db.races.forEach(function(r){byId[r.id]=r;});
-    found=(d.races||[]).filter(function(r){
-      if(!r.legs||!r.legs.length)return false;
-      if(byId[r.id])return raceChanged(byId[r.id],r)&&db.racesIgnored.indexOf('upd:'+r.id)<0;
-      return db.racesIgnored.indexOf(r.id)<0;
-    });
+    // races already in the app: quietly fill in any extra details (checkpoints, competitors, photo) - never ask about them
+    var upd=0;
+    (d.races||[]).forEach(function(r){var old=byId[r.id];
+      if(old&&raceChanged(old,r)){db.races[db.races.indexOf(old)]=Object.assign({},old,r,{name:old.name,club:old.club||r.club});upd++;}});
+    if(upd){save();renderRaces();}
+    // only races that are not in the app yet (and not ignored before) are offered
+    found=(d.races||[]).filter(function(r){return r.legs&&r.legs.length&&!byId[r.id]&&db.racesIgnored.indexOf(r.id)<0;});
+    if(!found.length){toast('No new races found'+(upd?' · details updated for '+plural(upd,'race'):''),3500);return;}
     var when=new Date().toLocaleString();
-    if(!found.length){toast('No new races found'+(when?' · checked '+when:''));return;}
-    var h='<h2>Found on 4sport</h2><p class="note" style="margin-bottom:12px">Checked '+esc(when)+'. Add these to your Races?</p>';
-    found.forEach(function(r){var upd=!!byId[r.id];
-      h+='<div class="row" style="cursor:default"><div class="sicon" style="background:var(--surf2)">🏁</div><div class="rinfo"><div class="rtitle"><bdi>'+esc(r.name)+'</bdi></div><div class="rsub">'+(upd?'<span class="badge">MORE DETAILS</span>':'<span class="badge">NEW</span>')+fmtDate(r.date)+' · '+(TY[r.type]?TY[r.type].n:r.type)+'</div></div><div class="ramt"><div class="big">'+esc(r.total||'')+'</div><div class="small">place '+esc(r.overall||'')+'</div></div></div>';});
-    h+='<div class="actions"><button class="btn ghost" data-act="ignoreraces">✋ Ignore</button><span class="sp"></span><button class="btn primary" data-act="addraces">✅ Add</button></div>';
-    $('M_FOUND_BODY').innerHTML=h;$('M_FOUND').classList.add('on');
+    renderFound(when);
+
   }
 }
-function addFound(){
-  var n=0,u=0;
+function renderFound(when){
+  if(when)renderFound.when=when;
+  if(!found.length){$('M_FOUND').classList.remove('on');return;}
+  var h='<h2>New on 4sport</h2><p class="note" style="margin-bottom:12px">Checked '+esc(renderFound.when||'')+'.</p>';
   found.forEach(function(r){
-    var i=-1;db.races.forEach(function(x,j){if(x.id===r.id)i=j;});
-    if(i<0){db.races.push(r);n++;}
-    else{var old=db.races[i],keep={name:old.name,club:old.club};db.races[i]=Object.assign({},old,r,keep);u++;}
+    h+='<div class="row" style="cursor:default;flex-wrap:wrap"><div class="sicon" style="background:var(--surf2)">🏁</div><div class="rinfo"><div class="rtitle"><bdi>'+esc(r.name)+'</bdi></div><div class="rsub">'+fmtDate(r.date)+' · '+(TY[r.type]?TY[r.type].n:r.type)+' · place '+esc(r.overall||'')+'</div></div><div class="ramt"><div class="big">'+esc(r.total||'')+'</div></div>'+
+      '<div style="display:flex;gap:8px;width:100%;justify-content:flex-end;margin-top:8px"><button class="btn ghost" style="padding:7px 12px" data-act="ignorerace" data-id="'+r.id+'">✋ Ignore</button><button class="btn primary" style="padding:7px 14px" data-act="addrace" data-id="'+r.id+'">✅ Add</button></div></div>';
   });
-  found=[];save();$('M_FOUND').classList.remove('on');render();
-  toast((n?plural(n,'race')+' added':'')+(n&&u?' · ':'')+(u?plural(u,'race')+' updated':''));
+  h+='<div class="actions"><span class="sp"></span><button class="btn ghost" data-act="closefound">Decide later</button></div>';
+  $('M_FOUND_BODY').innerHTML=h;$('M_FOUND').classList.add('on');
 }
-function ignoreFound(){
-  var byId={};db.races.forEach(function(r){byId[r.id]=1;});
-  found.forEach(function(r){var k=byId[r.id]?'upd:'+r.id:r.id;if(db.racesIgnored.indexOf(k)<0)db.racesIgnored.push(k);});
-  found=[];save();$('M_FOUND').classList.remove('on');toast('OK — ignored');
-}
+function takeFound(id){var r=null;found=found.filter(function(x){if(x.id===id){r=x;return false;}return true;});return r;}
+function addRace(id){var r=takeFound(id);if(!r)return;db.races.push(r);rtype=r.type||rtype;save();render();renderFound();toast('Added: '+r.name);}
+function ignoreRace(id){var r=takeFound(id);if(!r)return;if(db.racesIgnored.indexOf(r.id)<0)db.racesIgnored.push(r.id);save();renderFound();toast('Ignored: '+r.name);}
 
 /* ---------- render ---------- */
 function render(){
@@ -981,9 +979,9 @@ document.addEventListener('click',function(ev){
   var rt=t.closest('[data-rtype]');if(rt){rtype=rt.dataset.rtype;sSet(KEY+'_rtype',rtype);renderRaces();return;}
   var f=t.closest('[data-f]');if(f){state[f.dataset.f]=f.dataset.v;render();return;}
   var tab=t.closest('.tab');if(tab){state.tab=tab.dataset.tab;sSet(KEY+'_ui',JSON.stringify({tab:state.tab}));render();window.scrollTo(0,0);return;}
-  var row=t.closest('.row');if(row){openEdit(row.dataset.id);return;}
+  var row=t.closest('.row');if(row&&row.dataset.id&&!t.closest('[data-act]')){openEdit(row.dataset.id);return;}
   var a=t.closest('[data-act]');
-  if(a){var k=a.dataset.act;if(k==='add')openEdit();else if(k==='sample')addSample();else if(k==='backup')backup();else if(k==='install')doInstall();else if(k==='checkraces')checkRaces();else if(k==='addraces')addFound();else if(k==='ignoreraces')ignoreFound();else if(k==='noinstall'){sSet(KEY+'_noinst','1');updateInstall();}else if(k==='table'){showTable=!showTable;renderStats();}return;}
+  if(a){var k=a.dataset.act;if(k==='add')openEdit();else if(k==='sample')addSample();else if(k==='backup')backup();else if(k==='install')doInstall();else if(k==='checkraces')checkRaces();else if(k==='addrace')addRace(a.dataset.id);else if(k==='ignorerace')ignoreRace(a.dataset.id);else if(k==='closefound'){found=[];$('M_FOUND').classList.remove('on');}else if(k==='noinstall'){sSet(KEY+'_noinst','1');updateInstall();}else if(k==='table'){showTable=!showTable;renderStats();}return;}
   var sec=t.closest('[data-sec]');if(sec){toggleSec(sec.dataset.sec);render();return;}
   var fb=t.closest('#E_FREQ button');if(fb){form.freq=fb.dataset.v;syncForm();return;}
   var sb=t.closest('#E_SPORT button');if(sb){form.sport=sb.dataset.v;syncForm();return;}

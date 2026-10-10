@@ -35,13 +35,13 @@ button,input,select,textarea{font-family:var(--fb);color:var(--text)}
 .logo{font-family:'Saira',var(--fh);font-style:italic;font-size:28px;font-weight:800;padding-right:4px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-0.5px}
 .logo-icon{font-size:22px}
 .logo-sub{margin-left:auto;font-size:11px;color:var(--muted);text-align:right}
-.topbar-btns{display:flex;gap:6px;padding-bottom:12px}
-.tbtn{background:var(--surf2);border:1px solid var(--border);border-radius:10px;padding:9px 6px;font-size:11px;font-weight:500;cursor:pointer;user-select:none;display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;white-space:nowrap}
-.tbtn .ticon{font-size:16px;line-height:1}
+.topbar-btns{display:flex;gap:5px;padding-bottom:10px}
+.tbtn{background:var(--surf2);border:1px solid var(--border);border-radius:8px;padding:5px 4px;font-size:11px;font-weight:500;cursor:pointer;user-select:none;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:4px;flex:1;white-space:nowrap}
+.tbtn .ticon{font-size:12px;line-height:1}
 .tbtn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent;font-weight:700}
-.tabs{display:flex;gap:4px;background:var(--surf);border-radius:12px;padding:4px;margin-bottom:10px}
-.tab{flex:1;background:none;border:0;border-radius:9px;padding:9px 4px;font-family:var(--fh);font-weight:700;font-size:13px;white-space:nowrap;color:var(--muted);cursor:pointer}
-.tab.on{background:var(--surf2);color:var(--text)}
+.tabs{display:flex;gap:4px;background:var(--surf);border-radius:14px;padding:5px;margin-bottom:12px}
+.tab{flex:1;background:none;border:0;border-radius:10px;padding:13px 4px;font-family:var(--fh);font-weight:700;font-size:15px;white-space:nowrap;color:var(--muted);cursor:pointer}
+.tab.on{background:var(--surf2);color:var(--text);box-shadow:inset 0 -2px 0 var(--accent)}
 
 /* filters */
 .filters{padding-bottom:10px;display:flex;flex-direction:column;gap:7px}
@@ -285,7 +285,7 @@ button,input,select,textarea{font-family:var(--fb);color:var(--text)}
 <script>
 (function(){
 'use strict';
-var APP_VERSION='2.6'; // bump this (and CACHE in sw.js) with every update
+var APP_VERSION='2.7'; // bump this (and CACHE in sw.js) with every update
 var KEY='triexp_v1';
 
 var SPORTS=[
